@@ -1,5 +1,6 @@
 // This file is used to test the interpreter. There are intentional errors marked with comments
 // To test any one kind of error, make sure all the previous error causing lines are commented out.
+// Or run `cdsl sample_instruction_set_file.cdsl --check` to validate the instructions without running them.
 
 SET A 121 // Should run perfectly
 
