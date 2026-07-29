@@ -18,5 +18,8 @@ namespace Color {
 void interpreter_error(int line_number, const std::string& message,
                        const std::vector<std::string>& instruction);
 
+void interpreter_error_continue(const std::string& message,
+                                const std::vector<std::string>& instruction);
+
 void display_instruction(const std::vector<std::string>& instruction);
 

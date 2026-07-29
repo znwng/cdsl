@@ -10,7 +10,6 @@ namespace {
 
 void set_constant(const std::string& constant_key, float constant_value) {
     constants[constant_key] = constant_value;
-    std::printf("Constant %s set as %f\n\n", constant_key.c_str(), constant_value);
 }
 
 bool has_constant(const std::string& name) {

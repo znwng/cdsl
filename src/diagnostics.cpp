@@ -20,3 +20,10 @@ void interpreter_error(int line_number, const std::string& message,
     std::exit(EXIT_FAILURE);
 }
 
+void interpreter_error_continue(const std::string& message,
+                                const std::vector<std::string>& instruction_vector) {
+    std::cerr << Color::RED << message << Color::RESET << '\n';
+    display_instruction(instruction_vector);
+    std::cout << '\n';
+}
+
