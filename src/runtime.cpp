@@ -33,7 +33,7 @@ namespace {
 
 } // namespace
 
-void execute_instruction(const std::vector<std::string>& instruction_vector, int line_number) {
+void process_instruction(const std::vector<std::string>& instruction_vector, int line_number, bool check_flag) {
     std::string action = instruction_vector[0];
 
     static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table {
@@ -45,6 +45,8 @@ void execute_instruction(const std::vector<std::string>& instruction_vector, int
     INSTRUCTION_SET opcode;
 
     auto it = opcode_table.find(action);
+
+    // Get the opcode from INSTRUCTION_SET enum
     if (it == opcode_table.end()) {
         opcode = INSTRUCTION_SET::INVALID;
     } else {
@@ -54,131 +56,49 @@ void execute_instruction(const std::vector<std::string>& instruction_vector, int
     switch (opcode) {
         case INSTRUCTION_SET::SET: {
             if (instruction_vector.size() != 3) {
-                interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                if (check_flag) {
+                    interpreter_error_continue("Invalid number of arguments", instruction_vector);
+                    break;
+                } else {
+                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                }
             }
 
             if (!is_valid_variable_name(instruction_vector[1])) {
-                interpreter_error(line_number, "Invalid constant name: " + instruction_vector[1],
-                                  instruction_vector);
-            }
-            std::string constant_key = instruction_vector[1];
-            auto successful_conversion = is_valid_float_value(instruction_vector[2]);
-
-            if (!successful_conversion) {
-                interpreter_error(line_number, successful_conversion.error(), instruction_vector);
-            }
-
-            float constant_value = *successful_conversion;
-            set_constant(constant_key, constant_value);
-            // std::printf("Constant %s set as %f\n\n", constant_key.c_str(), constant_value);
-            break;
-        }
-
-        case INSTRUCTION_SET::MOVE: {
-            if (instruction_vector.size() != 3) {
-                interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
-            }
-            std::string component_label = instruction_vector[1];
-            std::string value = instruction_vector[2];
-            if (value[0] == '$') {
-                value.erase(0, 1);
-
-                if (!has_constant(value)) {
-                    interpreter_error(line_number, "Unknown constant: " + value,
+                if (check_flag) {
+                    interpreter_error_continue("Invalid constant name: " + instruction_vector[1], instruction_vector);
+                } else {
+                    interpreter_error(line_number, "Invalid constant name: " + instruction_vector[1],
                                       instruction_vector);
                 }
-
-                move_function(component_label, get_constant(value));
-                break;
-            }
-
-            auto successful_conversion = is_valid_float_value(value);
-            if (!successful_conversion) {
-                interpreter_error(line_number, successful_conversion.error(), instruction_vector);
-            }
-
-            move_function(component_label, *successful_conversion);
-            break;
-        }
-
-        case INSTRUCTION_SET::WAIT: {
-            if (instruction_vector.size() != 2) {
-                interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
-            }
-
-            auto successful_conversion = is_valid_int_value(instruction_vector[1]);
-
-            if (!successful_conversion) {
-                interpreter_error(line_number, successful_conversion.error(), instruction_vector);
-            }
-
-            int delay = *successful_conversion;
-            if (delay < 0) {
-                interpreter_error(line_number, "Delay cannot be negative " + std::to_string(delay),
-                                  instruction_vector);
-            }
-
-            wait_function(delay);
-            break;
-        }
-
-        case INSTRUCTION_SET::INVALID: {
-            interpreter_error(line_number, "Invalid action " + instruction_vector[0],
-                              instruction_vector);
-        }
-    }
-}
-
-void validate_instruction(const std::vector<std::string>& instruction_vector, int line_number) {
-    std::string action = instruction_vector[0];
-
-    static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table {
-        {"SET", INSTRUCTION_SET::SET},
-        {"MOVE", INSTRUCTION_SET::MOVE},
-        {"WAIT", INSTRUCTION_SET::WAIT},
-    };
-
-    INSTRUCTION_SET opcode;
-
-    auto it = opcode_table.find(action);
-    if (it == opcode_table.end()) {
-        opcode = INSTRUCTION_SET::INVALID;
-    } else {
-        opcode = it->second;
-    }
-
-    switch (opcode) {
-        case INSTRUCTION_SET::SET: {
-            std::cout << "[line: " << line_number << "]  ";
-            if (instruction_vector.size() != 3) {
-                interpreter_error_continue("Invalid number of arguments", instruction_vector);
-                break;
-            }
-
-            if (!is_valid_variable_name(instruction_vector[1])) {
-                interpreter_error_continue("Invalid constant name: " + instruction_vector[1],
-                                           instruction_vector);
-                break;
             }
             std::string constant_key = instruction_vector[1];
             auto successful_conversion = is_valid_float_value(instruction_vector[2]);
 
             if (!successful_conversion) {
-                interpreter_error_continue(successful_conversion.error(), instruction_vector);
-                break;
+                if (check_flag) {
+                    interpreter_error_continue(successful_conversion.error(), instruction_vector);
+                } else {
+                    interpreter_error(line_number, successful_conversion.error(), instruction_vector);
+                }
             }
 
             float constant_value = *successful_conversion;
             set_constant(constant_key, constant_value);
-            std::cout << "Constant " << constant_key << " set to " << constant_value << std::endl;
+            if (check_flag) {
+                std::cout << "Constant " << constant_key << " set to " << constant_value << std::endl;
+            }
             break;
         }
 
         case INSTRUCTION_SET::MOVE: {
-            std::cout << "[line: " << line_number << "]  ";
             if (instruction_vector.size() != 3) {
-                interpreter_error_continue("Invalid number of arguments", instruction_vector);
-                break;
+                if (check_flag) {
+                    interpreter_error_continue("Invalid number of arguments", instruction_vector);
+                    break;
+                } else {
+                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                }
             }
             std::string component_label = instruction_vector[1];
             std::string value = instruction_vector[2];
@@ -186,8 +106,12 @@ void validate_instruction(const std::vector<std::string>& instruction_vector, in
                 value.erase(0, 1);
 
                 if (!has_constant(value)) {
-                    interpreter_error_continue("Unknown constant: " + value, instruction_vector);
-                    break;
+                    if (check_flag) {
+                        interpreter_error_continue("Unknown constant: " + value, instruction_vector);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "Unknown constant: " + value, instruction_vector);
+                    }
                 }
 
                 move_function(component_label, get_constant(value));
@@ -196,44 +120,67 @@ void validate_instruction(const std::vector<std::string>& instruction_vector, in
 
             auto successful_conversion = is_valid_float_value(value);
             if (!successful_conversion) {
-                interpreter_error_continue(successful_conversion.error(), instruction_vector);
-                break;
+                if (check_flag) {
+                    interpreter_error_continue(successful_conversion.error(), instruction_vector);
+                    break;
+                } else {
+                    interpreter_error(line_number, successful_conversion.error(), instruction_vector);
+                }
             }
 
-            move_function(component_label, *successful_conversion);
+            if (!check_flag) {
+                move_function(component_label, *successful_conversion);
+            }
             break;
         }
 
         case INSTRUCTION_SET::WAIT: {
-            std::cout << "[line: " << line_number << "]  ";
             if (instruction_vector.size() != 2) {
-                interpreter_error_continue("Invalid number of arguments", instruction_vector);
-                break;
+                if (check_flag) {
+
+                    interpreter_error_continue("Invalid number of arguments", instruction_vector);
+                    break;
+                } else {
+                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                }
             }
 
             auto successful_conversion = is_valid_int_value(instruction_vector[1]);
 
             if (!successful_conversion) {
-                interpreter_error_continue(successful_conversion.error(), instruction_vector);
-                break;
+                if (check_flag) {
+                    interpreter_error_continue(successful_conversion.error(), instruction_vector);
+                    break;
+                } else {
+                    interpreter_error(line_number, successful_conversion.error(), instruction_vector);
+                }
             }
 
             int delay = *successful_conversion;
             if (delay < 0) {
-                interpreter_error_continue("Delay cannot be negative " + std::to_string(delay),
-                                           instruction_vector);
-                break;
+                if (check_flag) {
+                    interpreter_error_continue("Delay cannot be negative " + std::to_string(delay), instruction_vector);
+                    break;
+                } else {
+                    interpreter_error(line_number, "Delay cannot be negative " + std::to_string(delay),
+                                      instruction_vector);
+                }
             }
 
-            wait_function(delay);
+            if (!check_flag) {
+                wait_function(delay);
+            }
             break;
         }
 
         case INSTRUCTION_SET::INVALID: {
-            std::cout << "[line: " << line_number << "]  ";
-            interpreter_error_continue("Invalid action " + instruction_vector[0],
-                                       instruction_vector);
-            break;
+            if (check_flag) {
+                interpreter_error_continue("Invalid action " + instruction_vector[0], instruction_vector);
+                break;
+
+            } else {
+                interpreter_error(line_number, "Invalid action " + instruction_vector[0], instruction_vector);
+            }
         }
     }
 }

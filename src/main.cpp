@@ -11,10 +11,10 @@ int main(int argc, char* argv[]) {
 
     // Arguments
     std::string file_path;
-    bool check = false;
+    bool check_flag = false;
 
     app.add_option("file", file_path, "Input file")->required();
-    app.add_flag("--check", check, "Validate without executing");
+    app.add_flag("--check", check_flag, "Validate without executing");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -23,12 +23,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    if (check) {
-        // validate_without_executing(filename);
-        validate_without_executing(file_path);
-    } else {
-        process_instructions_file(file_path);
-    }
+    process_instructions_file(file_path, check_flag);
 
     return 0;
 }
