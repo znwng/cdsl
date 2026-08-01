@@ -1,12 +1,19 @@
-# Build output
-build/
+# Build artifacts
+/build/
+/compile_commands.json
 
-# Object and dependency files
+# C/C++ compilation
 *.o
 *.obj
 *.d
 
-# Editors
+# CMake-generated files (only if generated in project root)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Editors and IDEs
 .vscode/
 .idea/
 
@@ -14,6 +21,6 @@ build/
 .DS_Store
 Thumbs.db
 
-# setups
+# Scripts (local only)
 deploy.sh
 
