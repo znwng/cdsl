@@ -42,23 +42,3 @@ chmod +x clean.sh
 ./clean.sh
 ```
 
----
-
-# Versioning
-
-ex: v0.0.1
-
-```
-1.4.2
-│ │ │
-│ │ └── PATCH
-│ └──── MINOR
-└────── MAJOR
-```
-
-| Version Part                | Increment When                                                                                  |
-| --------------------------- | ----------------------------------------------------------------------------------------------- |
-| **PATCH** (`1.0.0 → 1.0.1`) | Bug fixes, refactoring, or performance improvements that do not change the language's behavior. |
-| **MINOR** (`1.0.0 → 1.1.0`) | New features are added in a backward-compatible way. Existing scripts continue to work.         |
-| **MAJOR** (`1.0.0 → 2.0.0`) | Breaking changes are introduced that make older scripts incompatible.                           |
-
