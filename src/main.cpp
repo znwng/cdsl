@@ -1,12 +1,12 @@
-#include "../include/file.hpp"
-#include "../include/validation.hpp"
-
 #include <CLI/CLI.hpp>
 #include <cstdio>
 #include <iostream>
 
+#include "../include/file.hpp"
+#include "../include/validation.hpp"
+
 int main(int argc, char* argv[]) {
-    CLI::App app {"cdsl"};
+    CLI::App app{"cdsl"};
     app.footer("Example:\n  cdsl program.cdsl");
 
     // Arguments
@@ -27,4 +27,3 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-

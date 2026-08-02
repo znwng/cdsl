@@ -1,9 +1,5 @@
 #include "../include/runtime.hpp"
 
-#include "../include/constants.hpp"
-#include "../include/diagnostics.hpp"
-#include "../include/validation.hpp"
-
 #include <chrono>
 #include <cstdio>
 #include <iostream>
@@ -12,31 +8,36 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../include/constants.hpp"
+#include "../include/diagnostics.hpp"
+#include "../include/validation.hpp"
+
 namespace {
 
-    enum class INSTRUCTION_SET { SET, PRINT, MOVE, WAIT, INVALID };
+enum class INSTRUCTION_SET { SET, PRINT, MOVE, WAIT, INVALID };
 
-    void move_function(const std::string& component_label, float value) {
-        // Placeholder code
-        // To be redefined
-        std::printf("Moved %s by %f\n\n", component_label.c_str(), value);
-    }
+void move_function(const std::string& component_label, float value) {
+    // Placeholder code
+    // To be redefined
+    std::printf("Moved %s by %f\n\n", component_label.c_str(), value);
+}
 
-    void wait_function(int delay) {
-        // Placeholder code
-        // To be redefined
+void wait_function(int delay) {
+    // Placeholder code
+    // To be redefined
 
-        // Actual delay implementation must be done on the hardware
-        std::printf("Waiting for %d milliseconds\n\n", delay);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
-    }
+    // Actual delay implementation must be done on the hardware
+    std::printf("Waiting for %d milliseconds\n\n", delay);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+}
 
-} // namespace
+}  // namespace
 
-void process_instruction(const std::vector<std::string>& instruction_vector, int line_number, bool check_flag) {
+void process_instruction(const std::vector<std::string>& instruction_vector, int line_number,
+                         bool check_flag) {
     std::string action = instruction_vector[0];
 
-    static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table {
+    static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table{
         {"SET", INSTRUCTION_SET::SET},
         {"PRINT", INSTRUCTION_SET::PRINT},
         {"MOVE", INSTRUCTION_SET::MOVE},
@@ -58,20 +59,24 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
         case INSTRUCTION_SET::SET: {
             if (instruction_vector.size() != 3) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error_continue(line_number, "Invalid number of arguments",
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error(line_number, "Invalid number of arguments",
+                                      instruction_vector);
                 }
             }
 
             if (!is_valid_variable_name(instruction_vector[1])) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, "Invalid constant name: " + instruction_vector[1],
+                    interpreter_error_continue(line_number,
+                                               "Invalid constant name: " + instruction_vector[1],
                                                instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "Invalid constant name: " + instruction_vector[1],
+                    interpreter_error(line_number,
+                                      "Invalid constant name: " + instruction_vector[1],
                                       instruction_vector);
                 }
             }
@@ -80,17 +85,20 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
 
             if (!successful_conversion) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, successful_conversion.error(), instruction_vector);
+                    interpreter_error_continue(line_number, successful_conversion.error(),
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, successful_conversion.error(), instruction_vector);
+                    interpreter_error(line_number, successful_conversion.error(),
+                                      instruction_vector);
                 }
             }
 
             float constant_value = *successful_conversion;
             set_constant(constant_key, constant_value);
             if (check_flag) {
-                std::cout << "Constant " << constant_key << " set to " << constant_value << std::endl;
+                std::cout << "Constant " << constant_key << " set to " << constant_value
+                          << std::endl;
             }
             break;
         }
@@ -98,17 +106,18 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
         case INSTRUCTION_SET::PRINT: {
             if (instruction_vector.size() != 2) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error_continue(line_number, "Invalid number of arguments",
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error(line_number, "Invalid number of arguments",
+                                      instruction_vector);
                 }
             }
 
             std::string constant_key = instruction_vector[1];
 
-            if (!constant_key.empty() && constant_key[0] == '$')
-                constant_key.erase(0, 1);
+            if (!constant_key.empty() && constant_key[0] == '$') constant_key.erase(0, 1);
 
             if (has_constant(constant_key)) {
                 std::cout << get_constant(constant_key) << '\n';
@@ -118,7 +127,8 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
                                                instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "No constant with name " + constant_key, instruction_vector);
+                    interpreter_error(line_number, "No constant with name " + constant_key,
+                                      instruction_vector);
                 }
             }
 
@@ -128,10 +138,12 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
         case INSTRUCTION_SET::MOVE: {
             if (instruction_vector.size() != 3) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error_continue(line_number, "Invalid number of arguments",
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error(line_number, "Invalid number of arguments",
+                                      instruction_vector);
                 }
             }
             std::string component_label = instruction_vector[1];
@@ -141,10 +153,12 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
 
                 if (!has_constant(value)) {
                     if (check_flag) {
-                        interpreter_error_continue(line_number, "Unknown constant: " + value, instruction_vector);
+                        interpreter_error_continue(line_number, "Unknown constant: " + value,
+                                                   instruction_vector);
                         break;
                     } else {
-                        interpreter_error(line_number, "Unknown constant: " + value, instruction_vector);
+                        interpreter_error(line_number, "Unknown constant: " + value,
+                                          instruction_vector);
                     }
                 }
 
@@ -155,10 +169,12 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
             auto successful_conversion = is_valid_float_value(value);
             if (!successful_conversion) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, successful_conversion.error(), instruction_vector);
+                    interpreter_error_continue(line_number, successful_conversion.error(),
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, successful_conversion.error(), instruction_vector);
+                    interpreter_error(line_number, successful_conversion.error(),
+                                      instruction_vector);
                 }
             }
 
@@ -171,11 +187,12 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
         case INSTRUCTION_SET::WAIT: {
             if (instruction_vector.size() != 2) {
                 if (check_flag) {
-
-                    interpreter_error_continue(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error_continue(line_number, "Invalid number of arguments",
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "Invalid number of arguments", instruction_vector);
+                    interpreter_error(line_number, "Invalid number of arguments",
+                                      instruction_vector);
                 }
             }
 
@@ -183,21 +200,25 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
 
             if (!successful_conversion) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, successful_conversion.error(), instruction_vector);
+                    interpreter_error_continue(line_number, successful_conversion.error(),
+                                               instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, successful_conversion.error(), instruction_vector);
+                    interpreter_error(line_number, successful_conversion.error(),
+                                      instruction_vector);
                 }
             }
 
             int delay = *successful_conversion;
             if (delay < 0) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, "Delay cannot be negative " + std::to_string(delay),
+                    interpreter_error_continue(line_number,
+                                               "Delay cannot be negative " + std::to_string(delay),
                                                instruction_vector);
                     break;
                 } else {
-                    interpreter_error(line_number, "Delay cannot be negative " + std::to_string(delay),
+                    interpreter_error(line_number,
+                                      "Delay cannot be negative " + std::to_string(delay),
                                       instruction_vector);
                 }
             }
@@ -210,13 +231,14 @@ void process_instruction(const std::vector<std::string>& instruction_vector, int
 
         case INSTRUCTION_SET::INVALID: {
             if (check_flag) {
-                interpreter_error_continue(line_number, "Invalid action " + instruction_vector[0], instruction_vector);
+                interpreter_error_continue(line_number, "Invalid action " + instruction_vector[0],
+                                           instruction_vector);
                 break;
 
             } else {
-                interpreter_error(line_number, "Invalid action " + instruction_vector[0], instruction_vector);
+                interpreter_error(line_number, "Invalid action " + instruction_vector[0],
+                                  instruction_vector);
             }
         }
     }
 }
-

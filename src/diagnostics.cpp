@@ -27,4 +27,3 @@ void interpreter_error_continue(int line_number, const std::string& message,
     display_instruction(instruction_vector);
     std::cout << '\n';
 }
-

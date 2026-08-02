@@ -6,4 +6,3 @@ void set_constant(const std::string& name, float value);
 bool has_constant(const std::string& name);
 float get_constant(const std::string& name);
 void display_constants();
-

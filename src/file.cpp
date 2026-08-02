@@ -1,5 +1,3 @@
-#include "../include/runtime.hpp"
-
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -7,6 +5,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "../include/runtime.hpp"
 
 bool is_valid_instruction_file(const std::string& file_path) {
     std::filesystem::path path(file_path);
@@ -46,4 +46,3 @@ void process_instructions_file(const std::string& file_path, bool check_flag) {
         }
     }
 }
-

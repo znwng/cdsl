@@ -57,4 +57,3 @@ bool is_valid_variable_name(const std::string& name) {
 
     return true;
 }
-
