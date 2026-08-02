@@ -15,13 +15,15 @@ void display_instruction(const std::vector<std::string>& instruction_vector) {
 [[noreturn]]
 void interpreter_error(int line_number, const std::string& message,
                        const std::vector<std::string>& instruction_vector) {
-    std::cerr << Color::RED << "Line " << line_number << '\n' << message << Color::RESET << '\n';
+    std::cout << Color::RED << "Line " << line_number << '\n' << message << Color::RESET << '\n';
     display_instruction(instruction_vector);
     std::exit(EXIT_FAILURE);
 }
 
-void interpreter_error_continue(const std::string& message, const std::vector<std::string>& instruction_vector) {
-    std::cerr << Color::RED << message << Color::RESET << '\n';
+void interpreter_error_continue(int line_number, const std::string& message,
+                                const std::vector<std::string>& instruction_vector) {
+    std::cout << Color::RED << "Line " << line_number << '\n' << message << Color::RESET << '\n';
+
     display_instruction(instruction_vector);
     std::cout << '\n';
 }

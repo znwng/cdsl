@@ -4,6 +4,12 @@
 
 SET A 121 // Should run perfectly
 
+PRINT $A // Should print value of $A
+
+PRINT // Should raise error. No const passed
+
+PRINT M // Should raise an error. No const named M
+
 //SET Z 90 // Should ignore this line. As it is starting with `//` and no space afterwards.
 
 SET X // Should raise error. Invaild number of arguments
