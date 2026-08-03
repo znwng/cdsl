@@ -4,9 +4,9 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <vector>
 
 #include "../include/runtime.hpp"
+#include "../include/types.hpp"
 
 bool is_valid_instruction_file(const std::string& file_path) {
     std::filesystem::path path(file_path);
@@ -30,7 +30,7 @@ void process_instructions_file(const std::string& file_path, bool check_flag) {
         }
 
         std::istringstream iss(line);
-        std::vector<std::string> tokens;
+        Instruction tokens;
         std::string token;
 
         while (iss >> token) {

@@ -18,27 +18,27 @@ INSTRUCTION ARGUMENT_1 ARGUMENT_2 ...
 
 # Build
 
-Make sure CMake is installed.
+Make sure `Make` and `CMake` are installed.
 
-### Clone
+## Clone
 
 ```sh
 git clone https://github.com/znwng/cdsl.git
 cd cdsl
 ```
 
-### Generate Binary
+## Build
 
 ```sh
-chmod +x bootstrap.sh
-chmod +x clean.sh
-
-./bootstrap.sh
+make
 ```
 
-### Uninstall
+## Available Commands
 
 ```sh
-./clean.sh
+make          # Incremental build
+make setup    # Initialize submodules and configure CMake
+make build    # Build the project
+make clean    # Remove build artifacts
+make rebuild  # clean + configure + build
 ```
-

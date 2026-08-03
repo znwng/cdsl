@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-#include <vector>
+#include <types.hpp>
 
-void process_instruction(const std::vector<std::string>& instruction, int line_number,
-                         bool check_flag);
+void process_instruction(const Instruction& instruction, int line_number, bool check_flag);

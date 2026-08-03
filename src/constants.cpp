@@ -8,9 +8,7 @@ namespace {
 std::unordered_map<std::string, float> constants;
 }
 
-void set_constant(const std::string& constant_key, float constant_value) {
-    constants[constant_key] = constant_value;
-}
+void set_constant(const std::string& constant_key, float constant_value) { constants[constant_key] = constant_value; }
 
 bool has_constant(const std::string& name) { return constants.contains(name); }
 
