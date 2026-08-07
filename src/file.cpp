@@ -34,7 +34,6 @@ void process_instructions_file(const std::string& file_path, bool check_flag) {
         std::string token;
 
         while (iss >> token) {
-            // Stop reading tokens from the comment character onwards `//`
             if (token.starts_with("//")) {
                 break;
             }

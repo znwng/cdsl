@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(external/CLI11)
+add_subdirectory(external/replxx)
 
 add_executable(cdsl
     src/main.cpp
@@ -18,6 +19,6 @@ add_executable(cdsl
 )
 
 target_include_directories(cdsl PRIVATE include)
-
+target_link_libraries(cdsl PRIVATE replxx)
 target_link_libraries(cdsl PRIVATE CLI11::CLI11)
 
