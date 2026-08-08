@@ -47,7 +47,7 @@ To delete the build directory.
 # Open the help menu
 cdsl --help 
 
-# Start executing the instructions provided in the filename.cdsl
+# Start executing the instructions provided in the file provided
 cdsl filename.cdsl 
 
 # Validates the instructions without executing them
