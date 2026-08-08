@@ -38,3 +38,21 @@ Binary built in `build` directory with name cdsl.
 make clean
 ```
 To delete the build directory.
+
+---
+
+# Usage
+
+```sh
+# Open the help menu
+cdsl --help 
+
+# Start executing the instructions provided in the filename.cdsl
+cdsl filename.cdsl 
+
+# Validates the instructions without executing them
+cdsl filename.cdsl --check
+
+# Starts an interactive shell to execute commands
+cdsl
+```
