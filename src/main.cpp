@@ -7,24 +7,32 @@
 #include "../include/validation.hpp"
 
 int main(int argc, char* argv[]) {
-    CLI::App app{"cdsl"};
-    app.footer("Example:\n  cdsl program.cdsl");
+    CLI::App app{"CDSL - Command Description and Scripting Language"};
+
+    app.description(
+        "CDSL is a command-line interpreter for executing robot control\n"
+        "instructions interactively or from a script file.");
 
     std::string file_path;
     bool check_flag = false;
 
     app.add_option("file", file_path, "Input .cdsl file");
-    app.add_flag("--check", check_flag, "Validate without executing");
+    app.add_flag("--check,-c", check_flag, "Validate the specified CDSL file without executing it.");
 
     CLI11_PARSE(app, argc, argv);
 
     if (file_path.empty()) {
+        if (check_flag) {
+            std::cerr << "Error: --check requires a .cdsl file.\n";
+            return 1;
+        }
+
         run_interactive_mode();
         return 0;
     }
 
     if (!is_valid_instruction_file(file_path)) {
-        std::cerr << "Invalid file passed. `.cdsl` file required\n";
+        std::cerr << "Invalid file passed. `.cdsl` file required.\n";
         return 1;
     }
 

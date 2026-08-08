@@ -347,7 +347,7 @@ void run_interactive_mode() {
 
     replxx::Replxx rx;
 
-    // Highlight only numbers in cyan.
+    // Highlight only numbers in green.
     rx.set_highlighter_callback([](std::string const& input, replxx::Replxx::colors_t& colors) {
         using replxx::Replxx;
 
@@ -365,7 +365,7 @@ void run_interactive_mode() {
             std::strtof(token.c_str(), &end);
 
             if (end != token.c_str() && *end == '\0') {
-                std::fill(colors.begin() + start, colors.begin() + start + token.size(), Replxx::Color::CYAN);
+                std::fill(colors.begin() + start, colors.begin() + start + token.size(), Replxx::Color::GREEN);
             }
 
             pos = start + token.size();

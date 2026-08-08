@@ -18,7 +18,7 @@ INSTRUCTION ARGUMENT_1 ARGUMENT_2 ...
 
 # Build
 
-Make sure `Make` and `CMake` are installed.
+Make sure **Make**, **CMake**, and a **C++ compiler** are installed.
 
 ## Clone
 
@@ -28,17 +28,13 @@ cd cdsl
 ```
 
 ## Build
-
 ```sh
 make
 ```
 
-## Available Commands
+Binary built in `build` directory with name cdsl.
 
 ```sh
-make          # Incremental build
-make setup    # Initialize submodules and configure CMake
-make build    # Build the project
-make clean    # Remove build artifacts
-make rebuild  # clean + configure + build
+make clean
 ```
+To delete the build directory.
