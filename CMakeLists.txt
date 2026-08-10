@@ -6,8 +6,22 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+include(FetchContent)
+
+# ---------------------------------------------------------
+# Dependencies
+# ---------------------------------------------------------
+
 add_subdirectory(external/CLI11)
 add_subdirectory(external/replxx)
+
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.17.0
+)
+
+FetchContent_MakeAvailable(googletest)
 
 # ---------------------------------------------------------
 # CDSL library
@@ -21,7 +35,10 @@ add_library(cdsl_lib
     src/validation.cpp
 )
 
-target_include_directories(cdsl_lib PUBLIC include)
+target_include_directories(cdsl_lib
+    PUBLIC
+    include
+)
 
 target_link_libraries(cdsl_lib
     PUBLIC
@@ -48,8 +65,6 @@ target_link_libraries(cdsl
 
 enable_testing()
 
-find_package(GTest REQUIRED)
-
 add_executable(cdsl_tests
     tests/test_runtime_process_instruction.cpp
     tests/test_validation.cpp
@@ -62,4 +77,5 @@ target_link_libraries(cdsl_tests
 )
 
 include(GoogleTest)
+
 gtest_discover_tests(cdsl_tests)
