@@ -44,4 +44,4 @@ Instructions are of the form: `ACTION LABEL VALUE`
 
 or sometimes just: `ACTION VALUE`
 
-For more information, check out [this](runtime/README.md)
+For more information, check out [this](src/README.md)
