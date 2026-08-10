@@ -32,6 +32,180 @@ void wait_function(int delay) {
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 }
 
+float evaluate_expression(const std::string& expression) {
+    size_t pos = 0;
+
+    auto skip_whitespace = [&]() {
+        while (pos < expression.size() && std::isspace(static_cast<unsigned char>(expression[pos]))) {
+            ++pos;
+        }
+    };
+
+    std::function<float()> parse_expression;
+    std::function<float()> parse_term;
+    std::function<float()> parse_factor;
+    std::function<float()> parse_primary;
+
+    parse_primary = [&]() -> float {
+        skip_whitespace();
+
+        if (pos >= expression.size()) {
+            throw std::runtime_error("Unexpected end of expression");
+        }
+
+        // Parenthesized expression
+        if (expression[pos] == '(') {
+            ++pos;
+
+            float value = parse_expression();
+
+            skip_whitespace();
+
+            if (pos >= expression.size() || expression[pos] != ')') {
+                throw std::runtime_error("Expected ')'");
+            }
+
+            ++pos;
+
+            return value;
+        }
+
+        // Constant: $constant_name
+        if (expression[pos] == '$') {
+            ++pos;
+
+            size_t start = pos;
+
+            if (pos >= expression.size() ||
+                (!std::isalpha(static_cast<unsigned char>(expression[pos])) && expression[pos] != '_')) {
+                throw std::runtime_error("Expected constant name after '$'");
+            }
+
+            ++pos;
+
+            while (pos < expression.size() &&
+                   (std::isalnum(static_cast<unsigned char>(expression[pos])) || expression[pos] == '_')) {
+                ++pos;
+            }
+
+            std::string name = expression.substr(start, pos - start);
+
+            if (!has_constant(name)) {
+                throw std::runtime_error("Undefined constant: $" + name);
+            }
+
+            return get_constant(name);
+        }
+
+        // Number
+        if (std::isdigit(static_cast<unsigned char>(expression[pos])) || expression[pos] == '.') {
+            size_t start = pos;
+
+            while (pos < expression.size() &&
+                   (std::isdigit(static_cast<unsigned char>(expression[pos])) || expression[pos] == '.')) {
+                ++pos;
+            }
+
+            return std::stof(expression.substr(start, pos - start));
+        }
+
+        throw std::runtime_error("Unexpected character: " + std::string(1, expression[pos]));
+    };
+
+    // Unary + and -
+    parse_factor = [&]() -> float {
+        skip_whitespace();
+
+        if (pos < expression.size() && expression[pos] == '-') {
+            ++pos;
+            return -parse_factor();
+        }
+
+        if (pos < expression.size() && expression[pos] == '+') {
+            ++pos;
+            return parse_factor();
+        }
+
+        return parse_primary();
+    };
+
+    // * and /
+    parse_term = [&]() -> float {
+        float value = parse_factor();
+
+        while (true) {
+            skip_whitespace();
+
+            if (pos >= expression.size()) {
+                break;
+            }
+
+            char op = expression[pos];
+
+            if (op != '*' && op != '/') {
+                break;
+            }
+
+            ++pos;
+
+            float rhs = parse_factor();
+
+            if (op == '*') {
+                value *= rhs;
+            } else {
+                if (rhs == 0.0f) {
+                    throw std::runtime_error("Division by zero");
+                }
+
+                value /= rhs;
+            }
+        }
+
+        return value;
+    };
+
+    // + and -
+    parse_expression = [&]() -> float {
+        float value = parse_term();
+
+        while (true) {
+            skip_whitespace();
+
+            if (pos >= expression.size()) {
+                break;
+            }
+
+            char op = expression[pos];
+
+            if (op != '+' && op != '-') {
+                break;
+            }
+
+            ++pos;
+
+            float rhs = parse_term();
+
+            if (op == '+') {
+                value += rhs;
+            } else {
+                value -= rhs;
+            }
+        }
+
+        return value;
+    };
+
+    float result = parse_expression();
+
+    skip_whitespace();
+
+    if (pos != expression.size()) {
+        throw std::runtime_error("Unexpected character: " + std::string(1, expression[pos]));
+    }
+
+    return result;
+}
+
 }  // namespace
 
 void process_instruction(const Instruction& instruction, int line_number, bool check_flag) {
@@ -74,23 +248,57 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                     interpreter_error(line_number, "Invalid constant name: " + instruction[1], instruction);
                 }
             }
-            std::string constant_key = instruction[1];
-            auto successful_conversion = is_valid_float_value(instruction[2]);
 
-            if (!successful_conversion) {
-                if (check_flag) {
-                    interpreter_error_continue(line_number, successful_conversion.error(), instruction);
-                    break;
-                } else {
-                    interpreter_error(line_number, successful_conversion.error(), instruction);
+            std::string constant_key = instruction[1];
+            float constant_value;
+
+            // Expression
+            if (instruction[2].starts_with("#[")) {
+                if (instruction[2].size() < 3 || instruction[2].back() != ']') {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, "Invalid expression", instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "Invalid expression", instruction);
+                    }
+                }
+
+                std::string expression = instruction[2].substr(2, instruction[2].size() - 3);
+
+                try {
+                    constant_value = evaluate_expression(expression);
+                } catch (const std::exception& e) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, e.what(), instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, e.what(), instruction);
+                    }
                 }
             }
 
-            float constant_value = *successful_conversion;
-            set_constant(constant_key, constant_value);
-            if (check_flag) {
-                std::cout << "Constant " << constant_key << " set to " << constant_value << std::endl;
+            // Regular float
+            else {
+                auto successful_conversion = is_valid_float_value(instruction[2]);
+
+                if (!successful_conversion) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, successful_conversion.error(), instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, successful_conversion.error(), instruction);
+                    }
+                }
+
+                constant_value = *successful_conversion;
             }
+
+            set_constant(constant_key, constant_value);
+
+            if (check_flag) {
+                std::cout << "Constant " << constant_key << " set to " << constant_value << '\n';
+            }
+
             break;
         }
 
@@ -104,18 +312,51 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                 }
             }
 
-            std::string constant_key = instruction[1];
+            const std::string& argument = instruction[1];
 
-            if (!constant_key.empty() && constant_key[0] == '$') constant_key.erase(0, 1);
+            // Expression
+            if (argument.starts_with("#[")) {
+                if (argument.size() < 3 || argument.back() != ']') {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, "Invalid expression", instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "Invalid expression", instruction);
+                    }
+                }
 
-            if (has_constant(constant_key)) {
-                std::cout << get_constant(constant_key) << '\n';
-            } else {
-                if (check_flag) {
-                    interpreter_error_continue(line_number, "No constant with name " + constant_key, instruction);
-                    break;
+                std::string expression = argument.substr(2, argument.size() - 3);
+
+                try {
+                    float result = evaluate_expression(expression);
+                    std::cout << result << '\n';
+                } catch (const std::exception& e) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, e.what(), instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, e.what(), instruction);
+                    }
+                }
+            }
+
+            // Constant
+            else {
+                std::string constant_key = argument;
+
+                if (!constant_key.empty() && constant_key[0] == '$') {
+                    constant_key.erase(0, 1);
+                }
+
+                if (has_constant(constant_key)) {
+                    std::cout << get_constant(constant_key) << '\n';
                 } else {
-                    interpreter_error(line_number, "No constant with name " + constant_key, instruction);
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, "No constant with name " + constant_key, instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "No constant with name " + constant_key, instruction);
+                    }
                 }
             }
 
@@ -131,25 +372,64 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                     interpreter_error(line_number, "Invalid number of arguments", instruction);
                 }
             }
-            std::string component_label = instruction[1];
-            std::string value = instruction[2];
-            if (value[0] == '$') {
-                value.erase(0, 1);
 
-                if (!has_constant(value)) {
+            std::string component_label = instruction[1];
+            const std::string& value = instruction[2];
+
+            // Expression
+            if (value.starts_with("#[")) {
+                if (value.size() < 3 || value.back() != ']') {
                     if (check_flag) {
-                        interpreter_error_continue(line_number, "Unknown constant: " + value, instruction);
+                        interpreter_error_continue(line_number, "Invalid expression", instruction);
                         break;
                     } else {
-                        interpreter_error(line_number, "Unknown constant: " + value, instruction);
+                        interpreter_error(line_number, "Invalid expression", instruction);
                     }
                 }
 
-                move_function(component_label, get_constant(value));
+                std::string expression = value.substr(2, value.size() - 3);
+
+                try {
+                    float result = evaluate_expression(expression);
+
+                    if (!check_flag) {
+                        move_function(component_label, result);
+                    }
+                } catch (const std::exception& e) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, e.what(), instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, e.what(), instruction);
+                    }
+                }
+
                 break;
             }
 
+            // Constant
+            if (!value.empty() && value[0] == '$') {
+                std::string constant_name = value.substr(1);
+
+                if (!has_constant(constant_name)) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, "Unknown constant: " + constant_name, instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "Unknown constant: " + constant_name, instruction);
+                    }
+                }
+
+                if (!check_flag) {
+                    move_function(component_label, get_constant(constant_name));
+                }
+
+                break;
+            }
+
+            // Literal float
             auto successful_conversion = is_valid_float_value(value);
+
             if (!successful_conversion) {
                 if (check_flag) {
                     interpreter_error_continue(line_number, successful_conversion.error(), instruction);
@@ -162,6 +442,7 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
             if (!check_flag) {
                 move_function(component_label, *successful_conversion);
             }
+
             break;
         }
 
@@ -175,18 +456,69 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                 }
             }
 
-            auto successful_conversion = is_valid_int_value(instruction[1]);
+            const std::string& value = instruction[1];
+            int delay;
 
-            if (!successful_conversion) {
-                if (check_flag) {
-                    interpreter_error_continue(line_number, successful_conversion.error(), instruction);
-                    break;
-                } else {
-                    interpreter_error(line_number, successful_conversion.error(), instruction);
+            // Expression
+            if (value.starts_with("#[")) {
+                if (value.size() < 3 || value.back() != ']') {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, "Invalid expression", instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "Invalid expression", instruction);
+                    }
+                }
+
+                std::string expression = value.substr(2, value.size() - 3);
+
+                try {
+                    float result = evaluate_expression(expression);
+
+                    delay = static_cast<int>(result);
+                } catch (const std::exception& e) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, e.what(), instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, e.what(), instruction);
+                    }
                 }
             }
 
-            int delay = *successful_conversion;
+            // Constant
+            else if (value.starts_with('$')) {
+                std::string constant_name = value.substr(1);
+
+                if (!has_constant(constant_name)) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, "Unknown constant: " + constant_name, instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, "Unknown constant: " + constant_name, instruction);
+                    }
+                }
+
+                delay = static_cast<int>(get_constant(constant_name));
+            }
+
+            // Literal integer
+            else {
+                auto successful_conversion = is_valid_int_value(value);
+
+                if (!successful_conversion) {
+                    if (check_flag) {
+                        interpreter_error_continue(line_number, successful_conversion.error(), instruction);
+                        break;
+                    } else {
+                        interpreter_error(line_number, successful_conversion.error(), instruction);
+                    }
+                }
+
+                delay = *successful_conversion;
+            }
+
+            // Common validation
             if (delay < 0) {
                 if (check_flag) {
                     interpreter_error_continue(line_number, "Delay cannot be negative " + std::to_string(delay),
@@ -200,6 +532,7 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
             if (!check_flag) {
                 wait_function(delay);
             }
+
             break;
         }
 
@@ -229,7 +562,6 @@ void process_interactive_instruction(const Instruction& instruction) {
 
     auto it = opcode_table.find(action);
 
-    // Get the opcode from INSTRUCTION_SET enum
     if (it == opcode_table.end()) {
         opcode = INSTRUCTION_SET::INVALID;
     } else {
@@ -239,102 +571,235 @@ void process_interactive_instruction(const Instruction& instruction) {
     switch (opcode) {
         case INSTRUCTION_SET::SET: {
             if (instruction.size() != 3) {
-                std::cerr << "Invalid number of instructions. Example: `SET constant_name constant_value`" << std::endl;
+                std::cerr << "Invalid number of instructions. "
+                          << "Example: `SET constant_name value`" << '\n';
                 break;
             }
 
             if (!is_valid_variable_name(instruction[1])) {
-                std::cerr << "Invalid constant name: " << instruction[1] << std::endl;
+                std::cerr << "Invalid constant name: " << instruction[1] << '\n';
                 break;
             }
+
             std::string constant_key = instruction[1];
-            auto successful_conversion = is_valid_float_value(instruction[2]);
+            float constant_value;
 
-            if (!successful_conversion) {
-                std::cerr << successful_conversion.error() << std::endl;
-                break;
+            // Expression
+            if (instruction[2].starts_with("#[")) {
+                const std::string& value = instruction[2];
+
+                if (value.size() < 3 || value.back() != ']') {
+                    std::cerr << "Invalid expression\n";
+                    break;
+                }
+
+                std::string expression = value.substr(2, value.size() - 3);
+
+                try {
+                    constant_value = evaluate_expression(expression);
+                } catch (const std::exception& e) {
+                    std::cerr << e.what() << '\n';
+                    break;
+                }
             }
 
-            float constant_value = *successful_conversion;
+            // Constant
+            else if (instruction[2].starts_with('$')) {
+                std::string constant_name = instruction[2].substr(1);
+
+                if (!has_constant(constant_name)) {
+                    std::cerr << "Unknown constant: " << constant_name << '\n';
+                    break;
+                }
+
+                constant_value = get_constant(constant_name);
+            }
+
+            // Literal
+            else {
+                auto successful_conversion = is_valid_float_value(instruction[2]);
+
+                if (!successful_conversion) {
+                    std::cerr << successful_conversion.error() << '\n';
+                    break;
+                }
+
+                constant_value = *successful_conversion;
+            }
+
             set_constant(constant_key, constant_value);
-            std::cout << "Constant " << constant_key << " set to " << constant_value << std::endl;
+
+            std::cout << "Constant " << constant_key << " set to " << constant_value << '\n';
+
             break;
         }
 
         case INSTRUCTION_SET::PRINT: {
             if (instruction.size() != 2) {
-                std::cerr << "Invalid number of arguments. Example: `PRINT constant_name`" << std::endl;
+                std::cerr << "Invalid number of arguments. "
+                          << "Example: `PRINT value`" << '\n';
                 break;
             }
 
-            std::string constant_key = instruction[1];
+            const std::string& value = instruction[1];
 
-            if (!constant_key.empty() && constant_key[0] == '$') constant_key.erase(0, 1);
+            // Expression
+            if (value.starts_with("#[")) {
+                if (value.size() < 3 || value.back() != ']') {
+                    std::cerr << "Invalid expression\n";
+                    break;
+                }
 
-            if (has_constant(constant_key)) {
-                std::cout << get_constant(constant_key) << '\n';
-            } else {
-                std::cerr << "No constant with name " << constant_key << std::endl;
+                std::string expression = value.substr(2, value.size() - 3);
+
+                try {
+                    std::cout << evaluate_expression(expression) << '\n';
+                } catch (const std::exception& e) {
+                    std::cerr << e.what() << '\n';
+                }
+
                 break;
             }
+
+            // Constant
+            std::string constant_key = value;
+
+            if (constant_key.starts_with('$')) {
+                constant_key.erase(0, 1);
+            }
+
+            if (!has_constant(constant_key)) {
+                std::cerr << "No constant with name " << constant_key << '\n';
+                break;
+            }
+
+            std::cout << get_constant(constant_key) << '\n';
 
             break;
         }
 
         case INSTRUCTION_SET::MOVE: {
             if (instruction.size() != 3) {
-                std::cerr << "Invalid number of arguments. Example: `MOVE COMPONENT_NAME VALUE`" << std::endl;
+                std::cerr << "Invalid number of arguments. "
+                          << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
                 break;
             }
-            std::string component_label = instruction[1];
-            std::string value = instruction[2];
-            if (value[0] == '$') {
-                value.erase(0, 1);
 
-                if (!has_constant(value)) {
-                    std::cerr << "Unknown constant: " << value << std::endl;
+            std::string component_label = instruction[1];
+            const std::string& value = instruction[2];
+
+            // Expression
+            if (value.starts_with("#[")) {
+                if (value.size() < 3 || value.back() != ']') {
+                    std::cerr << "Invalid expression\n";
                     break;
                 }
 
-                move_function(component_label, get_constant(value));
+                std::string expression = value.substr(2, value.size() - 3);
+
+                try {
+                    float result = evaluate_expression(expression);
+
+                    move_function(component_label, result);
+                } catch (const std::exception& e) {
+                    std::cerr << e.what() << '\n';
+                }
+
                 break;
             }
 
+            // Constant
+            if (value.starts_with('$')) {
+                std::string constant_name = value.substr(1);
+
+                if (!has_constant(constant_name)) {
+                    std::cerr << "Unknown constant: " << constant_name << '\n';
+                    break;
+                }
+
+                move_function(component_label, get_constant(constant_name));
+
+                break;
+            }
+
+            // Literal
             auto successful_conversion = is_valid_float_value(value);
+
             if (!successful_conversion) {
-                std::cerr << successful_conversion.error() << std::endl;
+                std::cerr << successful_conversion.error() << '\n';
                 break;
             }
 
             move_function(component_label, *successful_conversion);
+
             break;
         }
 
         case INSTRUCTION_SET::WAIT: {
             if (instruction.size() != 2) {
-                std::cerr << "Invalid number of arguments. Example: `WAIT DURATION_MS`" << std::endl;
+                std::cerr << "Invalid number of arguments. "
+                          << "Example: `WAIT DURATION_MS`" << '\n';
                 break;
             }
 
-            auto successful_conversion = is_valid_int_value(instruction[1]);
+            const std::string& value = instruction[1];
+            int delay;
 
-            if (!successful_conversion) {
-                std::cerr << successful_conversion.error() << std::endl;
-                break;
+            // Expression
+            if (value.starts_with("#[")) {
+                if (value.size() < 3 || value.back() != ']') {
+                    std::cerr << "Invalid expression\n";
+                    break;
+                }
+
+                std::string expression = value.substr(2, value.size() - 3);
+
+                try {
+                    float result = evaluate_expression(expression);
+
+                    delay = static_cast<int>(result);
+                } catch (const std::exception& e) {
+                    std::cerr << e.what() << '\n';
+                    break;
+                }
             }
 
-            int delay = *successful_conversion;
+            // Constant
+            else if (value.starts_with('$')) {
+                std::string constant_name = value.substr(1);
+
+                if (!has_constant(constant_name)) {
+                    std::cerr << "Unknown constant: " << constant_name << '\n';
+                    break;
+                }
+
+                delay = static_cast<int>(get_constant(constant_name));
+            }
+
+            // Literal
+            else {
+                auto successful_conversion = is_valid_int_value(value);
+
+                if (!successful_conversion) {
+                    std::cerr << successful_conversion.error() << '\n';
+                    break;
+                }
+
+                delay = *successful_conversion;
+            }
+
             if (delay < 0) {
-                std::cerr << "Delay cannot be negative" << std::endl;
+                std::cerr << "Delay cannot be negative\n";
                 break;
             }
 
             wait_function(delay);
+
             break;
         }
 
         case INSTRUCTION_SET::INVALID: {
-            std::cerr << "Invalid action" << std::endl;
+            std::cerr << "Invalid action\n";
             break;
         }
     }
@@ -359,9 +824,13 @@ void run_interactive_mode() {
 
         while (iss >> token) {
             std::size_t start = input.find(token, pos);
-            if (start == std::string::npos) break;
+
+            if (start == std::string::npos) {
+                break;
+            }
 
             char* end = nullptr;
+
             std::strtof(token.c_str(), &end);
 
             if (end != token.c_str() && *end == '\0') {
@@ -384,11 +853,15 @@ void run_interactive_mode() {
 
         std::string command(input);
 
-        if (command.empty()) continue;
+        if (command.empty()) {
+            continue;
+        }
 
         rx.history_add(command);
 
-        if (command == "exit") break;
+        if (command == "exit") {
+            break;
+        }
 
         if (command == "clear") {
             rx.clear_screen();
@@ -396,6 +869,7 @@ void run_interactive_mode() {
         }
 
         std::istringstream iss(command);
+
         Instruction tokens;
         std::string token;
 
