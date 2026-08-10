@@ -9,8 +9,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_subdirectory(external/CLI11)
 add_subdirectory(external/replxx)
 
-add_executable(cdsl
-    src/main.cpp
+# ---------------------------------------------------------
+# CDSL library
+# ---------------------------------------------------------
+
+add_library(cdsl_lib
     src/constants.cpp
     src/diagnostics.cpp
     src/file.cpp
@@ -18,7 +21,45 @@ add_executable(cdsl
     src/validation.cpp
 )
 
-target_include_directories(cdsl PRIVATE include)
-target_link_libraries(cdsl PRIVATE replxx)
-target_link_libraries(cdsl PRIVATE CLI11::CLI11)
+target_include_directories(cdsl_lib PUBLIC include)
 
+target_link_libraries(cdsl_lib
+    PUBLIC
+    replxx
+    CLI11::CLI11
+)
+
+# ---------------------------------------------------------
+# Main executable
+# ---------------------------------------------------------
+
+add_executable(cdsl
+    src/main.cpp
+)
+
+target_link_libraries(cdsl
+    PRIVATE
+    cdsl_lib
+)
+
+# ---------------------------------------------------------
+# Tests
+# ---------------------------------------------------------
+
+enable_testing()
+
+find_package(GTest REQUIRED)
+
+add_executable(cdsl_tests
+    tests/test_runtime_process_instruction.cpp
+    tests/test_validation.cpp
+)
+
+target_link_libraries(cdsl_tests
+    PRIVATE
+    cdsl_lib
+    GTest::gtest_main
+)
+
+include(GoogleTest)
+gtest_discover_tests(cdsl_tests)

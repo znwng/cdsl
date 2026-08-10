@@ -14,6 +14,8 @@ bool has_constant(const std::string& name) { return constants.contains(name); }
 
 float get_constant(const std::string& name) { return constants.at(name); }
 
+void clear_constants() { constants.clear(); }
+
 void display_constants() {
     for (const auto& [key, value] : constants) {
         std::cout << key << " : " << value << '\n';
