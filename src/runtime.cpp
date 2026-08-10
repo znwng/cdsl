@@ -8,7 +8,7 @@
 #include <thread>
 #include <unordered_map>
 
-#include "../include/constants.hpp"
+#include "../include/variables.hpp"
 #include "../include/diagnostics.hpp"
 #include "../include/types.hpp"
 #include "../include/validation.hpp"
@@ -70,7 +70,7 @@ float evaluate_expression(const std::string& expression) {
             return value;
         }
 
-        // Constant: $constant_name
+        // variable: $variable_name
         if (expression[pos] == '$') {
             ++pos;
 
@@ -78,7 +78,7 @@ float evaluate_expression(const std::string& expression) {
 
             if (pos >= expression.size() ||
                 (!std::isalpha(static_cast<unsigned char>(expression[pos])) && expression[pos] != '_')) {
-                throw std::runtime_error("Expected constant name after '$'");
+                throw std::runtime_error("Expected variable name after '$'");
             }
 
             ++pos;
@@ -90,11 +90,11 @@ float evaluate_expression(const std::string& expression) {
 
             std::string name = expression.substr(start, pos - start);
 
-            if (!has_constant(name)) {
-                throw std::runtime_error("Undefined constant: $" + name);
+            if (!has_variable(name)) {
+                throw std::runtime_error("Undefined variable: $" + name);
             }
 
-            return get_constant(name);
+            return get_variable(name);
         }
 
         // Number
@@ -242,15 +242,15 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
 
             if (!is_valid_variable_name(instruction[1])) {
                 if (check_flag) {
-                    interpreter_error_continue(line_number, "Invalid constant name: " + instruction[1], instruction);
+                    interpreter_error_continue(line_number, "Invalid variable name: " + instruction[1], instruction);
                     break;
                 } else {
-                    interpreter_error(line_number, "Invalid constant name: " + instruction[1], instruction);
+                    interpreter_error(line_number, "Invalid variable name: " + instruction[1], instruction);
                 }
             }
 
-            std::string constant_key = instruction[1];
-            float constant_value;
+            std::string variable_key = instruction[1];
+            float variable_value;
 
             // Expression
             if (instruction[2].starts_with("#[")) {
@@ -266,7 +266,7 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                 std::string expression = instruction[2].substr(2, instruction[2].size() - 3);
 
                 try {
-                    constant_value = evaluate_expression(expression);
+                    variable_value = evaluate_expression(expression);
                 } catch (const std::exception& e) {
                     if (check_flag) {
                         interpreter_error_continue(line_number, e.what(), instruction);
@@ -290,13 +290,13 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                     }
                 }
 
-                constant_value = *successful_conversion;
+                variable_value = *successful_conversion;
             }
 
-            set_constant(constant_key, constant_value);
+            set_variable(variable_key, variable_value);
 
             if (check_flag) {
-                std::cout << "Constant " << constant_key << " set to " << constant_value << '\n';
+                std::cout << "variable " << variable_key << " set to " << variable_value << '\n';
             }
 
             break;
@@ -340,22 +340,22 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                 }
             }
 
-            // Constant
+            // variable
             else {
-                std::string constant_key = argument;
+                std::string variable_key = argument;
 
-                if (!constant_key.empty() && constant_key[0] == '$') {
-                    constant_key.erase(0, 1);
+                if (!variable_key.empty() && variable_key[0] == '$') {
+                    variable_key.erase(0, 1);
                 }
 
-                if (has_constant(constant_key)) {
-                    std::cout << get_constant(constant_key) << '\n';
+                if (has_variable(variable_key)) {
+                    std::cout << get_variable(variable_key) << '\n';
                 } else {
                     if (check_flag) {
-                        interpreter_error_continue(line_number, "No constant with name " + constant_key, instruction);
+                        interpreter_error_continue(line_number, "No variable with name " + variable_key, instruction);
                         break;
                     } else {
-                        interpreter_error(line_number, "No constant with name " + constant_key, instruction);
+                        interpreter_error(line_number, "No variable with name " + variable_key, instruction);
                     }
                 }
             }
@@ -407,21 +407,21 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                 break;
             }
 
-            // Constant
+            // variable
             if (!value.empty() && value[0] == '$') {
-                std::string constant_name = value.substr(1);
+                std::string variable_name = value.substr(1);
 
-                if (!has_constant(constant_name)) {
+                if (!has_variable(variable_name)) {
                     if (check_flag) {
-                        interpreter_error_continue(line_number, "Unknown constant: " + constant_name, instruction);
+                        interpreter_error_continue(line_number, "Unknown variable: " + variable_name, instruction);
                         break;
                     } else {
-                        interpreter_error(line_number, "Unknown constant: " + constant_name, instruction);
+                        interpreter_error(line_number, "Unknown variable: " + variable_name, instruction);
                     }
                 }
 
                 if (!check_flag) {
-                    move_function(component_label, get_constant(constant_name));
+                    move_function(component_label, get_variable(variable_name));
                 }
 
                 break;
@@ -486,20 +486,20 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
                 }
             }
 
-            // Constant
+            // variable
             else if (value.starts_with('$')) {
-                std::string constant_name = value.substr(1);
+                std::string variable_name = value.substr(1);
 
-                if (!has_constant(constant_name)) {
+                if (!has_variable(variable_name)) {
                     if (check_flag) {
-                        interpreter_error_continue(line_number, "Unknown constant: " + constant_name, instruction);
+                        interpreter_error_continue(line_number, "Unknown variable: " + variable_name, instruction);
                         break;
                     } else {
-                        interpreter_error(line_number, "Unknown constant: " + constant_name, instruction);
+                        interpreter_error(line_number, "Unknown variable: " + variable_name, instruction);
                     }
                 }
 
-                delay = static_cast<int>(get_constant(constant_name));
+                delay = static_cast<int>(get_variable(variable_name));
             }
 
             // Literal integer
@@ -572,17 +572,17 @@ void process_interactive_instruction(const Instruction& instruction) {
         case INSTRUCTION_SET::SET: {
             if (instruction.size() != 3) {
                 std::cerr << "Invalid number of instructions. "
-                          << "Example: `SET constant_name value`" << '\n';
+                          << "Example: `SET variable_name value`" << '\n';
                 break;
             }
 
             if (!is_valid_variable_name(instruction[1])) {
-                std::cerr << "Invalid constant name: " << instruction[1] << '\n';
+                std::cerr << "Invalid variable name: " << instruction[1] << '\n';
                 break;
             }
 
-            std::string constant_key = instruction[1];
-            float constant_value;
+            std::string variable_key = instruction[1];
+            float variable_value;
 
             // Expression
             if (instruction[2].starts_with("#[")) {
@@ -596,23 +596,23 @@ void process_interactive_instruction(const Instruction& instruction) {
                 std::string expression = value.substr(2, value.size() - 3);
 
                 try {
-                    constant_value = evaluate_expression(expression);
+                    variable_value = evaluate_expression(expression);
                 } catch (const std::exception& e) {
                     std::cerr << e.what() << '\n';
                     break;
                 }
             }
 
-            // Constant
+            // variable
             else if (instruction[2].starts_with('$')) {
-                std::string constant_name = instruction[2].substr(1);
+                std::string variable_name = instruction[2].substr(1);
 
-                if (!has_constant(constant_name)) {
-                    std::cerr << "Unknown constant: " << constant_name << '\n';
+                if (!has_variable(variable_name)) {
+                    std::cerr << "Unknown variable: " << variable_name << '\n';
                     break;
                 }
 
-                constant_value = get_constant(constant_name);
+                variable_value = get_variable(variable_name);
             }
 
             // Literal
@@ -624,12 +624,12 @@ void process_interactive_instruction(const Instruction& instruction) {
                     break;
                 }
 
-                constant_value = *successful_conversion;
+                variable_value = *successful_conversion;
             }
 
-            set_constant(constant_key, constant_value);
+            set_variable(variable_key, variable_value);
 
-            std::cout << "Constant " << constant_key << " set to " << constant_value << '\n';
+            std::cout << "variable " << variable_key << " set to " << variable_value << '\n';
 
             break;
         }
@@ -661,19 +661,19 @@ void process_interactive_instruction(const Instruction& instruction) {
                 break;
             }
 
-            // Constant
-            std::string constant_key = value;
+            // variable
+            std::string variable_key = value;
 
-            if (constant_key.starts_with('$')) {
-                constant_key.erase(0, 1);
+            if (variable_key.starts_with('$')) {
+                variable_key.erase(0, 1);
             }
 
-            if (!has_constant(constant_key)) {
-                std::cerr << "No constant with name " << constant_key << '\n';
+            if (!has_variable(variable_key)) {
+                std::cerr << "No variable with name " << variable_key << '\n';
                 break;
             }
 
-            std::cout << get_constant(constant_key) << '\n';
+            std::cout << get_variable(variable_key) << '\n';
 
             break;
         }
@@ -708,16 +708,16 @@ void process_interactive_instruction(const Instruction& instruction) {
                 break;
             }
 
-            // Constant
+            // variable
             if (value.starts_with('$')) {
-                std::string constant_name = value.substr(1);
+                std::string variable_name = value.substr(1);
 
-                if (!has_constant(constant_name)) {
-                    std::cerr << "Unknown constant: " << constant_name << '\n';
+                if (!has_variable(variable_name)) {
+                    std::cerr << "Unknown variable: " << variable_name << '\n';
                     break;
                 }
 
-                move_function(component_label, get_constant(constant_name));
+                move_function(component_label, get_variable(variable_name));
 
                 break;
             }
@@ -764,16 +764,16 @@ void process_interactive_instruction(const Instruction& instruction) {
                 }
             }
 
-            // Constant
+            // variable
             else if (value.starts_with('$')) {
-                std::string constant_name = value.substr(1);
+                std::string variable_name = value.substr(1);
 
-                if (!has_constant(constant_name)) {
-                    std::cerr << "Unknown constant: " << constant_name << '\n';
+                if (!has_variable(variable_name)) {
+                    std::cerr << "Unknown variable: " << variable_name << '\n';
                     break;
                 }
 
-                delay = static_cast<int>(get_constant(constant_name));
+                delay = static_cast<int>(get_variable(variable_name));
             }
 
             // Literal

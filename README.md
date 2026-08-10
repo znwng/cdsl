@@ -4,55 +4,44 @@ CDSL is a lightweight domain-specific language (DSL) designed to describe roboti
 
 Scripts consist of one instruction per line and are executed sequentially from top to bottom. CDSL scripts use the `.cdsl` file extension.
 
----
-
-# Syntax
-
-Each instruction follows the general format:
-
-```text
-INSTRUCTION ARGUMENT_1 ARGUMENT_2 ...
-```
-
----
-
 # Build
+Ensure installed:
+- Make
+- CMake
+- Ninja build system
+- GCC/G++ Compiler
+- GTests (optional)
 
-Make sure **Make**, **CMake**, and a **C++ compiler** are installed.
+| Command           | Description                                                                  |
+| ----------------- | ---------------------------------------------------------------------------- |
+| `make`            | Build the project (default).                                                 |
+| `make setup`      | Check dependencies, initialize Git submodules, and configure CMake.          |
+| `make build`      | Build the project using CMake and Ninja. Automatically runs setup if needed. |
+| `make clean`      | Remove build files and `compile_commands.json`.                              |
+| `make rebuild`    | Clean the project, reconfigure it, and build from scratch.                   |
+| `make check-deps` | Check whether CMake, Ninja, Git, and a C++ compiler are installed.           |
 
-## Clone
-
+# Docs
+The interpreter expects instructions either in a file or directly (interactive mode).
+To pass the instructions in a file, put all the commands (in expected order of execution) and save it
+as a `.cdsl` file.
+And then run:
 ```sh
-git clone https://github.com/znwng/cdsl.git
-cd cdsl
+cdsl filename.cdsl
 ```
 
-## Build
+The interpreter executes the commands line-by-line and immediately stops execution as soon as it
+detects an invalid command, invalid value or an overall invalid instruction. To just validate the 
+instructions file without actually executing the instructions, use the `--check` flag.
 ```sh
-make
-```
-
-Binary built in `build` directory with name cdsl.
-
-```sh
-make clean
-```
-To delete the build directory.
-
----
-
-# Usage
-
-```sh
-# Open the help menu
-cdsl --help 
-
-# Start executing the instructions provided in the file provided
-cdsl filename.cdsl 
-
-# Validates the instructions without executing them
 cdsl filename.cdsl --check
-
-# Starts an interactive shell to execute commands
-cdsl
 ```
+This is particularly helpful to pin-point errors before execution.
+
+To start the interactive mode just run `cdsl`. There is no `--check` flag for interactive mode.
+
+Instructions are of the form: `ACTION LABEL VALUE`
+
+or sometimes just: `ACTION VALUE`
+
+For more information, check out [this](runtime/README.md)

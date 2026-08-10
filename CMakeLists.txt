@@ -28,7 +28,7 @@ FetchContent_MakeAvailable(googletest)
 # ---------------------------------------------------------
 
 add_library(cdsl_lib
-    src/constants.cpp
+    src/variables.cpp
     src/diagnostics.cpp
     src/file.cpp
     src/runtime.cpp

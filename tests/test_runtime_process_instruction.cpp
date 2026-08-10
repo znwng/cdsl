@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
-#include "../include/constants.hpp"
+#include "../include/variables.hpp"
 #include "../include/runtime.hpp"
 #include "../include/types.hpp"
 
 class ProcessInstructionTest : public ::testing::Test {
 protected:
-    void SetUp() override { clear_constants(); }
+    void SetUp() override { clear_variables(); }
 
-    void TearDown() override { clear_constants(); }
+    void TearDown() override { clear_variables(); }
 };
 
 // ---------------------------------------------------------
@@ -20,8 +20,8 @@ TEST_F(ProcessInstructionTest, SetLiteralFloat) {
 
     process_instruction(instruction, 1, true);
 
-    EXPECT_TRUE(has_constant("speed"));
-    EXPECT_FLOAT_EQ(get_constant("speed"), 10.5f);
+    EXPECT_TRUE(has_variable("speed"));
+    EXPECT_FLOAT_EQ(get_variable("speed"), 10.5f);
 }
 
 TEST_F(ProcessInstructionTest, SetExpression) {
@@ -29,24 +29,24 @@ TEST_F(ProcessInstructionTest, SetExpression) {
 
     process_instruction(instruction, 1, true);
 
-    EXPECT_TRUE(has_constant("speed"));
-    EXPECT_FLOAT_EQ(get_constant("speed"), 14.0f);
+    EXPECT_TRUE(has_variable("speed"));
+    EXPECT_FLOAT_EQ(get_variable("speed"), 14.0f);
 }
 
-TEST_F(ProcessInstructionTest, SetInvalidFloatDoesNotCreateConstant) {
+TEST_F(ProcessInstructionTest, SetInvalidFloatDoesNotCreatevariable) {
     Instruction instruction{"SET", "speed", "abc"};
 
     process_instruction(instruction, 1, true);
 
-    EXPECT_FALSE(has_constant("speed"));
+    EXPECT_FALSE(has_variable("speed"));
 }
 
-TEST_F(ProcessInstructionTest, SetInvalidExpressionDoesNotCreateConstant) {
+TEST_F(ProcessInstructionTest, SetInvalidExpressionDoesNotCreatevariable) {
     Instruction instruction{"SET", "speed", "#[2+*3]"};
 
     process_instruction(instruction, 1, true);
 
-    EXPECT_FALSE(has_constant("speed"));
+    EXPECT_FALSE(has_variable("speed"));
 }
 
 TEST_F(ProcessInstructionTest, SetInvalidArgumentCount) {
@@ -54,15 +54,15 @@ TEST_F(ProcessInstructionTest, SetInvalidArgumentCount) {
 
     process_instruction(instruction, 1, true);
 
-    EXPECT_FALSE(has_constant("speed"));
+    EXPECT_FALSE(has_variable("speed"));
 }
 
 // ---------------------------------------------------------
 // PRINT
 // ---------------------------------------------------------
 
-TEST_F(ProcessInstructionTest, PrintConstant) {
-    set_constant("speed", 42.0f);
+TEST_F(ProcessInstructionTest, Printvariable) {
+    set_variable("speed", 42.0f);
 
     Instruction instruction{"PRINT", "$speed"};
 
@@ -87,7 +87,7 @@ TEST_F(ProcessInstructionTest, PrintExpression) {
     EXPECT_EQ(output, "14\n");
 }
 
-TEST_F(ProcessInstructionTest, PrintUnknownConstant) {
+TEST_F(ProcessInstructionTest, PrintUnknownvariable) {
     Instruction instruction{"PRINT", "$does_not_exist"};
 
     testing::internal::CaptureStdout();
@@ -96,7 +96,7 @@ TEST_F(ProcessInstructionTest, PrintUnknownConstant) {
 
     std::string output = testing::internal::GetCapturedStdout();
 
-    EXPECT_NE(output.find("No constant with name does_not_exist"), std::string::npos);
+    EXPECT_NE(output.find("No variable with name does_not_exist"), std::string::npos);
 }
 
 // ---------------------------------------------------------
@@ -115,8 +115,8 @@ TEST_F(ProcessInstructionTest, WaitExpression) {
     EXPECT_NO_THROW(process_instruction(instruction, 1, true));
 }
 
-TEST_F(ProcessInstructionTest, WaitConstant) {
-    set_constant("delay", 100.0f);
+TEST_F(ProcessInstructionTest, Waitvariable) {
+    set_variable("delay", 100.0f);
 
     Instruction instruction{"WAIT", "$delay"};
 
