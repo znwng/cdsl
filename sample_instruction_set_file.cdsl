@@ -2,47 +2,47 @@
 // To test any one kind of error, make sure all the previous error causing lines are commented out.
 // Or run `cdsl sample_instruction_set_file.cdsl --check` to validate the instructions without running them.
 
-SET A 121 // Should run perfectly
+set A 121 // Should run perfectly
 
-PRINT $A // Should print value of $A
+print $A // Should print value of $A
 
-PRINT // Should raise error. No const passed
+print // Should raise error. No const passed
 
-PRINT M // Should raise an error. No const named M
+print M // Should raise an error. No const named M
 
-//SET Z 90 // Should ignore this line. As it is starting with `//` and no space afterwards.
+//set Z 90 // Should ignore this line. As it is starting with `//` and no space afterwards.
 
-SET X // Should raise error. Invaild number of arguments
+set X // Should raise error. Invaild number of arguments
 
-SET @C 12 // Should raise error. `@C` is invalid constant name
+set @C 12 // Should raise error. `@C` is invalid constant name
 
-MOVE JOINT_2 120 // Should run perfectly
+move JOINT_2 120 // Should run perfectly
 
-MOVE JOINT_1 $A // Should run perfectly
+move JOINT_1 $A // Should run perfectly
 
-MOVE JOINT_1 $ // Should raise error. Empty constant passed
+move JOINT_1 $ // Should raise error. Empty constant passed
 
-MOVE JOINT abc // Should raise error. Proper value not passed
+move JOINT abc // Should raise error. Proper value not passed
 
-MOVE JOINT 12abc // Should raise error. Proper value not passed
+move JOINT 12abc // Should raise error. Proper value not passed
 
-MOVE JOINT 12.0.1 // Should raise error. Proper value not passed
+move JOINT 12.0.1 // Should raise error. Proper value not passed
 
-WAIT 500 // Should run perfectly
+wait 500 // Should run perfectly
 
-WAIT -500 // Should raise error. Negative delay is invalid
+wait -500 // Should raise error. Negative delay is invalid
 
-WAIT abc // Should raise error. Invalid delay
+wait abc // Should raise error. Invalid delay
 
-MOVE BASE $B // Should raise error. Constant `B` hasn't been set or is unknown as of now
+move BASE $B // Should raise error. Constant `B` hasn't been set or is unknown as of now
 
-SET B 1330 // Should run perfectly
+set B 1330 // Should run perfectly
 
-MOVE BASE $B // Should run perfectly
+move BASE $B // Should run perfectly
 
 // Empty line comment
 
-ALIGN JX 21 // Should raise error. `ALIGN` is an undefined action
+align JX 21 // Should raise error. `ALIGN` is an undefined action
 
-MOVE BASE deg // Should raise error. `deg` is invalid value
+move BASE deg // Should raise error. `deg` is invalid value
 

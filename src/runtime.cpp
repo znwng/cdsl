@@ -212,10 +212,10 @@ void process_instruction(const Instruction& instruction, int line_number, bool c
     std::string action = instruction[0];
 
     static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table{
-        {"SET", INSTRUCTION_SET::SET},
-        {"PRINT", INSTRUCTION_SET::PRINT},
-        {"MOVE", INSTRUCTION_SET::MOVE},
-        {"WAIT", INSTRUCTION_SET::WAIT},
+        {"set", INSTRUCTION_SET::SET},
+        {"print", INSTRUCTION_SET::PRINT},
+        {"move", INSTRUCTION_SET::MOVE},
+        {"wait", INSTRUCTION_SET::WAIT},
     };
 
     INSTRUCTION_SET opcode;
@@ -552,10 +552,10 @@ void process_interactive_instruction(const Instruction& instruction) {
     std::string action = instruction[0];
 
     static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table{
-        {"SET", INSTRUCTION_SET::SET},
-        {"PRINT", INSTRUCTION_SET::PRINT},
-        {"MOVE", INSTRUCTION_SET::MOVE},
-        {"WAIT", INSTRUCTION_SET::WAIT},
+        {"set", INSTRUCTION_SET::SET},
+        {"print", INSTRUCTION_SET::PRINT},
+        {"move", INSTRUCTION_SET::MOVE},
+        {"wait", INSTRUCTION_SET::WAIT},
     };
 
     INSTRUCTION_SET opcode;

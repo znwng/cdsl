@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "../include/variables.hpp"
 #include "../include/runtime.hpp"
 #include "../include/types.hpp"
+#include "../include/variables.hpp"
 
 class ProcessInstructionTest : public ::testing::Test {
 protected:
@@ -16,7 +16,7 @@ protected:
 // ---------------------------------------------------------
 
 TEST_F(ProcessInstructionTest, SetLiteralFloat) {
-    Instruction instruction{"SET", "speed", "10.5"};
+    Instruction instruction{"set", "speed", "10.5"};
 
     process_instruction(instruction, 1, true);
 
@@ -25,7 +25,7 @@ TEST_F(ProcessInstructionTest, SetLiteralFloat) {
 }
 
 TEST_F(ProcessInstructionTest, SetExpression) {
-    Instruction instruction{"SET", "speed", "#[2+3*4]"};
+    Instruction instruction{"set", "speed", "#[2+3*4]"};
 
     process_instruction(instruction, 1, true);
 
@@ -34,7 +34,7 @@ TEST_F(ProcessInstructionTest, SetExpression) {
 }
 
 TEST_F(ProcessInstructionTest, SetInvalidFloatDoesNotCreatevariable) {
-    Instruction instruction{"SET", "speed", "abc"};
+    Instruction instruction{"set", "speed", "abc"};
 
     process_instruction(instruction, 1, true);
 
@@ -42,7 +42,7 @@ TEST_F(ProcessInstructionTest, SetInvalidFloatDoesNotCreatevariable) {
 }
 
 TEST_F(ProcessInstructionTest, SetInvalidExpressionDoesNotCreatevariable) {
-    Instruction instruction{"SET", "speed", "#[2+*3]"};
+    Instruction instruction{"set", "speed", "#[2+*3]"};
 
     process_instruction(instruction, 1, true);
 
@@ -50,7 +50,7 @@ TEST_F(ProcessInstructionTest, SetInvalidExpressionDoesNotCreatevariable) {
 }
 
 TEST_F(ProcessInstructionTest, SetInvalidArgumentCount) {
-    Instruction instruction{"SET", "speed"};
+    Instruction instruction{"set", "speed"};
 
     process_instruction(instruction, 1, true);
 
@@ -64,7 +64,7 @@ TEST_F(ProcessInstructionTest, SetInvalidArgumentCount) {
 TEST_F(ProcessInstructionTest, Printvariable) {
     set_variable("speed", 42.0f);
 
-    Instruction instruction{"PRINT", "$speed"};
+    Instruction instruction{"print", "$speed"};
 
     testing::internal::CaptureStdout();
 
@@ -76,7 +76,7 @@ TEST_F(ProcessInstructionTest, Printvariable) {
 }
 
 TEST_F(ProcessInstructionTest, PrintExpression) {
-    Instruction instruction{"PRINT", "#[2+3*4]"};
+    Instruction instruction{"print", "#[2+3*4]"};
 
     testing::internal::CaptureStdout();
 
@@ -88,7 +88,7 @@ TEST_F(ProcessInstructionTest, PrintExpression) {
 }
 
 TEST_F(ProcessInstructionTest, PrintUnknownvariable) {
-    Instruction instruction{"PRINT", "$does_not_exist"};
+    Instruction instruction{"print", "$does_not_exist"};
 
     testing::internal::CaptureStdout();
 
@@ -104,13 +104,13 @@ TEST_F(ProcessInstructionTest, PrintUnknownvariable) {
 // ---------------------------------------------------------
 
 TEST_F(ProcessInstructionTest, WaitLiteralInteger) {
-    Instruction instruction{"WAIT", "100"};
+    Instruction instruction{"wait", "100"};
 
     EXPECT_NO_THROW(process_instruction(instruction, 1, true));
 }
 
 TEST_F(ProcessInstructionTest, WaitExpression) {
-    Instruction instruction{"WAIT", "#[50+50]"};
+    Instruction instruction{"wait", "#[50+50]"};
 
     EXPECT_NO_THROW(process_instruction(instruction, 1, true));
 }
@@ -118,13 +118,13 @@ TEST_F(ProcessInstructionTest, WaitExpression) {
 TEST_F(ProcessInstructionTest, Waitvariable) {
     set_variable("delay", 100.0f);
 
-    Instruction instruction{"WAIT", "$delay"};
+    Instruction instruction{"wait", "$delay"};
 
     EXPECT_NO_THROW(process_instruction(instruction, 1, true));
 }
 
 TEST_F(ProcessInstructionTest, WaitRejectsNegativeDelay) {
-    Instruction instruction{"WAIT", "-10"};
+    Instruction instruction{"wait", "-10"};
 
     testing::internal::CaptureStdout();
 
@@ -140,7 +140,7 @@ TEST_F(ProcessInstructionTest, WaitRejectsNegativeDelay) {
 // ---------------------------------------------------------
 
 TEST_F(ProcessInstructionTest, InvalidAction) {
-    Instruction instruction{"BOGUS"};
+    Instruction instruction{"bogus"};
 
     testing::internal::CaptureStdout();
 
@@ -148,5 +148,5 @@ TEST_F(ProcessInstructionTest, InvalidAction) {
 
     std::string output = testing::internal::GetCapturedStdout();
 
-    EXPECT_NE(output.find("Invalid action BOGUS"), std::string::npos);
+    EXPECT_NE(output.find("Invalid action bogus"), std::string::npos);
 }
