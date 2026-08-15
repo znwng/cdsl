@@ -1,8 +1,8 @@
-#include "../include/variables.hpp"
-
 #include <cstdio>
 #include <iostream>
 #include <unordered_map>
+
+#include "../include/variables.hpp"
 
 namespace {
 std::unordered_map<std::string, float> variables;

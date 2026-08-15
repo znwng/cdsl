@@ -1,4 +1,4 @@
-# CDSL Instruction Set
+#CDSL Instruction Set
 
 CDSL programs are composed of instructions, with each instruction written on a separate line.
 
@@ -195,7 +195,7 @@ Expressions are enclosed in `#[...]`. Spaces shouldn't be included
 
 ```text
 #[10 + 20] // Invalid
-#[10+20] // Valid
+#[10 + 20] // Valid
 ```
 
 For example:

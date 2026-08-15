@@ -8,10 +8,10 @@
 #include <thread>
 #include <unordered_map>
 
-#include "../include/variables.hpp"
 #include "../include/diagnostics.hpp"
 #include "../include/types.hpp"
 #include "../include/validation.hpp"
+#include "../include/variables.hpp"
 
 namespace {
 
@@ -571,8 +571,7 @@ void process_interactive_instruction(const Instruction& instruction) {
     switch (opcode) {
         case INSTRUCTION_SET::SET: {
             if (instruction.size() != 3) {
-                std::cerr << "Invalid number of instructions. "
-                          << "Example: `SET variable_name value`" << '\n';
+                std::cerr << "Invalid number of instructions. " << "Example: `SET variable_name value`" << '\n';
                 break;
             }
 
@@ -636,8 +635,7 @@ void process_interactive_instruction(const Instruction& instruction) {
 
         case INSTRUCTION_SET::PRINT: {
             if (instruction.size() != 2) {
-                std::cerr << "Invalid number of arguments. "
-                          << "Example: `PRINT value`" << '\n';
+                std::cerr << "Invalid number of arguments. " << "Example: `PRINT value`" << '\n';
                 break;
             }
 
@@ -680,8 +678,7 @@ void process_interactive_instruction(const Instruction& instruction) {
 
         case INSTRUCTION_SET::MOVE: {
             if (instruction.size() != 3) {
-                std::cerr << "Invalid number of arguments. "
-                          << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
+                std::cerr << "Invalid number of arguments. " << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
                 break;
             }
 
@@ -737,8 +734,7 @@ void process_interactive_instruction(const Instruction& instruction) {
 
         case INSTRUCTION_SET::WAIT: {
             if (instruction.size() != 2) {
-                std::cerr << "Invalid number of arguments. "
-                          << "Example: `WAIT DURATION_MS`" << '\n';
+                std::cerr << "Invalid number of arguments. " << "Example: `WAIT DURATION_MS`" << '\n';
                 break;
             }
 
