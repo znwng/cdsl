@@ -8,6 +8,22 @@
 #include "../include/runtime.hpp"
 #include "../include/types.hpp"
 
+Instruction tokenize(const std::string& line) {
+    std::istringstream iss(line);
+    Instruction tokens;
+    std::string token;
+
+    while (iss >> token) {
+        if (token.starts_with("//")) {
+            break;
+        }
+
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
+
 bool is_valid_instruction_file(const std::string& file_path) {
     std::filesystem::path path(file_path);
     return path.extension() == ".cdsl";
@@ -25,20 +41,12 @@ void process_instructions_file(const std::string& file_path, bool check_flag) {
 
     while (std::getline(instructions_file, line)) {
         line_number++;
+
         if (line.empty()) {
             continue;
         }
 
-        std::istringstream iss(line);
-        Instruction tokens;
-        std::string token;
-
-        while (iss >> token) {
-            if (token.starts_with("//")) {
-                break;
-            }
-            tokens.push_back(token);
-        }
+        Instruction tokens = tokenize(line);
 
         if (!tokens.empty()) {
             process_instruction(tokens, line_number, check_flag);

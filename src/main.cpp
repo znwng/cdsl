@@ -14,12 +14,19 @@ int main(int argc, char* argv[]) {
         "instructions interactively or from a script file.");
 
     std::string file_path;
+    std::string instruction;
     bool check_flag = false;
 
     app.add_option("file", file_path, "Input .cdsl file");
     app.add_flag("--check,-c", check_flag, "Validate the specified CDSL file without executing it.");
+    app.add_option("send", instruction, "Instruction");
 
     CLI11_PARSE(app, argc, argv);
+
+    if (!instruction.empty()) {
+        process_instruction(tokenize(instruction), 0, check_flag);
+        return 0;
+    }
 
     if (file_path.empty()) {
         if (check_flag) {
