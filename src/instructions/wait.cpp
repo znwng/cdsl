@@ -1,4 +1,4 @@
-#include "../../include/instructions/wait.hpp"
+#include "instructions/wait.hpp"
 
 #include <chrono>
 #include <cstdio>
@@ -6,10 +6,10 @@
 #include <string>
 #include <thread>
 
-#include "../../include/diagnostics.hpp"
-#include "../../include/expression.hpp"
-#include "../../include/validation.hpp"
-#include "../../include/variables.hpp"
+#include "diagnostics.hpp"
+#include "expression.hpp"
+#include "validation.hpp"
+#include "variables.hpp"
 
 namespace instructions {
 
@@ -56,7 +56,6 @@ void process_wait(const Instruction& instruction, int line_number, bool check_fl
 
         try {
             float result = evaluate_expression(expression);
-
             delay = static_cast<int>(result);
         } catch (const std::exception& e) {
             if (check_flag) {
@@ -74,12 +73,14 @@ void process_wait(const Instruction& instruction, int line_number, bool check_fl
         std::string variable_name = value.substr(1);
 
         if (!has_variable(variable_name)) {
+            const std::string message = "Unknown variable: " + variable_name;
+
             if (check_flag) {
-                interpreter_error_continue(line_number, "Unknown variable: " + variable_name, instruction);
+                interpreter_error_continue(line_number, message, instruction);
                 return;
             }
 
-            interpreter_error(line_number, "Unknown variable: " + variable_name, instruction);
+            interpreter_error(line_number, message, instruction);
             return;
         }
 
@@ -105,14 +106,14 @@ void process_wait(const Instruction& instruction, int line_number, bool check_fl
 
     // Common validation
     if (delay < 0) {
-        std::string error = "Delay cannot be negative " + std::to_string(delay);
+        const std::string message = "Delay cannot be negative: " + std::to_string(delay);
 
         if (check_flag) {
-            interpreter_error_continue(line_number, error, instruction);
+            interpreter_error_continue(line_number, message, instruction);
             return;
         }
 
-        interpreter_error(line_number, error, instruction);
+        interpreter_error(line_number, message, instruction);
         return;
     }
 
@@ -123,8 +124,8 @@ void process_wait(const Instruction& instruction, int line_number, bool check_fl
 
 void process_interactive_wait(const Instruction& instruction) {
     if (instruction.size() != 2) {
-        std::cerr << "Invalid number of arguments. " << "Example: `WAIT DURATION_MS`" << '\n';
-
+        std::cerr << "Invalid number of arguments. "
+                  << "Example: `WAIT DURATION_MS`" << '\n';
         return;
     }
 
@@ -143,7 +144,6 @@ void process_interactive_wait(const Instruction& instruction) {
 
         try {
             float result = evaluate_expression(expression);
-
             delay = static_cast<int>(result);
         } catch (const std::exception& e) {
             std::cerr << e.what() << '\n';
@@ -157,7 +157,6 @@ void process_interactive_wait(const Instruction& instruction) {
 
         if (!has_variable(variable_name)) {
             std::cerr << "Unknown variable: " << variable_name << '\n';
-
             return;
         }
 
@@ -170,16 +169,15 @@ void process_interactive_wait(const Instruction& instruction) {
 
         if (!successful_conversion) {
             std::cerr << successful_conversion.error() << '\n';
-
             return;
         }
 
         delay = *successful_conversion;
     }
 
+    // Common validation
     if (delay < 0) {
-        std::cerr << "Delay cannot be negative\n";
-
+        std::cerr << "Delay cannot be negative: " << delay << '\n';
         return;
     }
 

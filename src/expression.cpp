@@ -1,11 +1,11 @@
-#include "../include/expression.hpp"
+#include "expression.hpp"
 
 #include <cctype>
 #include <functional>
 #include <stdexcept>
 #include <string>
 
-#include "../include/variables.hpp"
+#include "variables.hpp"
 
 float evaluate_expression(const std::string& expression) {
     size_t pos = 0;

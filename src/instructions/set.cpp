@@ -1,12 +1,12 @@
-#include "../../include/instructions/set.hpp"
+#include "instructions/set.hpp"
 
 #include <iostream>
 #include <string>
 
-#include "../../include/diagnostics.hpp"
-#include "../../include/expression.hpp"
-#include "../../include/validation.hpp"
-#include "../../include/variables.hpp"
+#include "diagnostics.hpp"
+#include "expression.hpp"
+#include "validation.hpp"
+#include "variables.hpp"
 
 namespace instructions {
 
@@ -22,12 +22,14 @@ void process_set(const Instruction& instruction, int line_number, bool check_fla
     }
 
     if (!is_valid_variable_name(instruction[1])) {
+        const std::string message = "Invalid variable name: " + instruction[1];
+
         if (check_flag) {
-            interpreter_error_continue(line_number, "Invalid variable name: " + instruction[1], instruction);
+            interpreter_error_continue(line_number, message, instruction);
             return;
         }
 
-        interpreter_error(line_number, "Invalid variable name: " + instruction[1], instruction);
+        interpreter_error(line_number, message, instruction);
         return;
     }
 
@@ -68,12 +70,14 @@ void process_set(const Instruction& instruction, int line_number, bool check_fla
         std::string variable_name = value.substr(1);
 
         if (!has_variable(variable_name)) {
+            const std::string message = "Unknown variable: " + variable_name;
+
             if (check_flag) {
-                interpreter_error_continue(line_number, "Unknown variable: " + variable_name, instruction);
+                interpreter_error_continue(line_number, message, instruction);
                 return;
             }
 
-            interpreter_error(line_number, "Unknown variable: " + variable_name, instruction);
+            interpreter_error(line_number, message, instruction);
             return;
         }
 
@@ -106,14 +110,13 @@ void process_set(const Instruction& instruction, int line_number, bool check_fla
 
 void process_interactive_set(const Instruction& instruction) {
     if (instruction.size() != 3) {
-        std::cerr << "Invalid number of instructions. " << "Example: `SET variable_name value`" << '\n';
-
+        std::cerr << "Invalid number of arguments. "
+                  << "Example: `SET variable_name value`" << '\n';
         return;
     }
 
     if (!is_valid_variable_name(instruction[1])) {
         std::cerr << "Invalid variable name: " << instruction[1] << '\n';
-
         return;
     }
 
@@ -126,7 +129,6 @@ void process_interactive_set(const Instruction& instruction) {
     if (value.starts_with("#[")) {
         if (value.size() < 3 || value.back() != ']') {
             std::cerr << "Invalid expression\n";
-
             return;
         }
 
@@ -136,7 +138,6 @@ void process_interactive_set(const Instruction& instruction) {
             variable_value = evaluate_expression(expression);
         } catch (const std::exception& e) {
             std::cerr << e.what() << '\n';
-
             return;
         }
     }
@@ -147,7 +148,6 @@ void process_interactive_set(const Instruction& instruction) {
 
         if (!has_variable(variable_name)) {
             std::cerr << "Unknown variable: " << variable_name << '\n';
-
             return;
         }
 
@@ -160,7 +160,6 @@ void process_interactive_set(const Instruction& instruction) {
 
         if (!successful_conversion) {
             std::cerr << successful_conversion.error() << '\n';
-
             return;
         }
 

@@ -2,9 +2,9 @@
 #include <iostream>
 #include <string>
 
-#include "../include/file.hpp"
-#include "../include/runtime.hpp"
-#include "../include/validation.hpp"
+#include "file.hpp"
+#include "runtime.hpp"
+#include "validation.hpp"
 
 int main(int argc, char* argv[]) {
     CLI::App app{"CDSL - Command Description and Scripting Language"};

@@ -17,18 +17,18 @@ add_subdirectory(external/replxx)
 # CDSL library
 # ---------------------------------------------------------
 
-add_library(cdsl_lib
-    src/variables.cpp
-    src/diagnostics.cpp
-    src/expression.cpp
-    src/file.cpp
-    src/runtime.cpp
-    src/validation.cpp
+file(GLOB_RECURSE CDSL_SOURCES
+    CONFIGURE_DEPENDS
+    src/*.cpp
+)
 
-    src/instructions/set.cpp
-    src/instructions/print.cpp
-    src/instructions/move.cpp
-    src/instructions/wait.cpp
+# main.cpp belongs to the executable, not the library
+list(REMOVE_ITEM CDSL_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+)
+
+add_library(cdsl_lib
+    ${CDSL_SOURCES}
 )
 
 target_include_directories(cdsl_lib

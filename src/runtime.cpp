@@ -1,4 +1,4 @@
-#include "../include/runtime.hpp"
+#include "runtime.hpp"
 
 #include <iostream>
 #include <replxx.hxx>
@@ -6,8 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "../include/diagnostics.hpp"
-#include "../include/instructions/instruction.hpp"
+#include "diagnostics.hpp"
+#include "instructions/instruction.hpp"
 
 namespace {
 

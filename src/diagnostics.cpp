@@ -1,10 +1,10 @@
-#include "../include/diagnostics.hpp"
+#include "diagnostics.hpp"
 
 #include <cstdio>
 #include <iostream>
 #include <string>
 
-#include "../include/types.hpp"
+#include "types.hpp"
 
 void display_instruction(const Instruction& instruction_vector) {
     for (const std::string& token : instruction_vector) {

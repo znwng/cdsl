@@ -1,13 +1,14 @@
-#include "../../include/instructions/move.hpp"
+#include "instructions/move.hpp"
 
 #include <cstdio>
 #include <iostream>
 #include <string>
 
-#include "../../include/diagnostics.hpp"
-#include "../../include/expression.hpp"
-#include "../../include/validation.hpp"
-#include "../../include/variables.hpp"
+#include "config.hpp"
+#include "diagnostics.hpp"
+#include "expression.hpp"
+#include "validation.hpp"
+#include "variables.hpp"
 
 namespace instructions {
 
@@ -17,6 +18,16 @@ void move_function(const std::string& component_label, float value) {
     // Placeholder code
     // To be redefined for actual hardware.
     std::printf("Moved %s by %f\n\n", component_label.c_str(), value);
+}
+
+bool validate_move_value(const std::string& component_label, float value) {
+    if (!config::value_within_limits(component_label, value)) {
+        std::cerr << "Value out of range for " << component_label << ": " << value << '\n';
+
+        return false;
+    }
+
+    return true;
 }
 
 }  // namespace
@@ -33,6 +44,19 @@ void process_move(const Instruction& instruction, int line_number, bool check_fl
     }
 
     const std::string& component_label = instruction[1];
+
+    if (!config::component_exists(component_label)) {
+        const std::string message = "Undefined component: " + component_label;
+
+        if (check_flag) {
+            interpreter_error_continue(line_number, message, instruction);
+            return;
+        }
+
+        interpreter_error(line_number, message, instruction);
+        return;
+    }
+
     const std::string& value = instruction[2];
 
     // Expression
@@ -51,6 +75,18 @@ void process_move(const Instruction& instruction, int line_number, bool check_fl
 
         try {
             float result = evaluate_expression(expression);
+
+            if (!config::value_within_limits(component_label, result)) {
+                const std::string message = "Value out of range: " + std::to_string(result);
+
+                if (check_flag) {
+                    interpreter_error_continue(line_number, message, instruction);
+                    return;
+                }
+
+                interpreter_error(line_number, message, instruction);
+                return;
+            }
 
             if (!check_flag) {
                 move_function(component_label, result);
@@ -73,17 +109,33 @@ void process_move(const Instruction& instruction, int line_number, bool check_fl
         std::string variable_name = value.substr(1);
 
         if (!has_variable(variable_name)) {
+            const std::string message = "Unknown variable: " + variable_name;
+
             if (check_flag) {
-                interpreter_error_continue(line_number, "Unknown variable: " + variable_name, instruction);
+                interpreter_error_continue(line_number, message, instruction);
                 return;
             }
 
-            interpreter_error(line_number, "Unknown variable: " + variable_name, instruction);
+            interpreter_error(line_number, message, instruction);
+            return;
+        }
+
+        float result = get_variable(variable_name);
+
+        if (!config::value_within_limits(component_label, result)) {
+            const std::string message = "Value out of range: " + std::to_string(result);
+
+            if (check_flag) {
+                interpreter_error_continue(line_number, message, instruction);
+                return;
+            }
+
+            interpreter_error(line_number, message, instruction);
             return;
         }
 
         if (!check_flag) {
-            move_function(component_label, get_variable(variable_name));
+            move_function(component_label, result);
         }
 
         return;
@@ -102,6 +154,18 @@ void process_move(const Instruction& instruction, int line_number, bool check_fl
         return;
     }
 
+    if (!config::value_within_limits(component_label, *successful_conversion)) {
+        const std::string message = "Value out of range: " + value;
+
+        if (check_flag) {
+            interpreter_error_continue(line_number, message, instruction);
+            return;
+        }
+
+        interpreter_error(line_number, message, instruction);
+        return;
+    }
+
     if (!check_flag) {
         move_function(component_label, *successful_conversion);
     }
@@ -109,11 +173,18 @@ void process_move(const Instruction& instruction, int line_number, bool check_fl
 
 void process_interactive_move(const Instruction& instruction) {
     if (instruction.size() != 3) {
-        std::cerr << "Invalid number of arguments. " << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
+        std::cerr << "Invalid number of arguments. "
+                  << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
         return;
     }
 
     const std::string& component_label = instruction[1];
+
+    if (!config::component_exists(component_label)) {
+        std::cerr << "Undefined component: " << component_label << '\n';
+        return;
+    }
+
     const std::string& value = instruction[2];
 
     // Expression
@@ -127,6 +198,10 @@ void process_interactive_move(const Instruction& instruction) {
 
         try {
             float result = evaluate_expression(expression);
+
+            if (!validate_move_value(component_label, result)) {
+                return;
+            }
 
             move_function(component_label, result);
         } catch (const std::exception& e) {
@@ -145,7 +220,13 @@ void process_interactive_move(const Instruction& instruction) {
             return;
         }
 
-        move_function(component_label, get_variable(variable_name));
+        float result = get_variable(variable_name);
+
+        if (!validate_move_value(component_label, result)) {
+            return;
+        }
+
+        move_function(component_label, result);
         return;
     }
 
@@ -154,6 +235,10 @@ void process_interactive_move(const Instruction& instruction) {
 
     if (!successful_conversion) {
         std::cerr << successful_conversion.error() << '\n';
+        return;
+    }
+
+    if (!validate_move_value(component_label, *successful_conversion)) {
         return;
     }
 

@@ -5,8 +5,8 @@
 #include <sstream>
 #include <string>
 
-#include "../include/runtime.hpp"
-#include "../include/types.hpp"
+#include "runtime.hpp"
+#include "types.hpp"
 
 Instruction tokenize(const std::string& line) {
     std::istringstream iss(line);

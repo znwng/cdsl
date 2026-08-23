@@ -1,11 +1,11 @@
-#include "../../include/instructions/print.hpp"
+#include "instructions/print.hpp"
 
 #include <iostream>
 #include <string>
 
-#include "../../include/diagnostics.hpp"
-#include "../../include/expression.hpp"
-#include "../../include/variables.hpp"
+#include "diagnostics.hpp"
+#include "expression.hpp"
+#include "variables.hpp"
 
 namespace instructions {
 
@@ -55,17 +55,19 @@ void process_print(const Instruction& instruction, int line_number, bool check_f
     // Variable
     std::string variable_key = argument;
 
-    if (!variable_key.empty() && variable_key[0] == '$') {
+    if (variable_key.starts_with('$')) {
         variable_key.erase(0, 1);
     }
 
     if (!has_variable(variable_key)) {
+        const std::string message = "No variable with name " + variable_key;
+
         if (check_flag) {
-            interpreter_error_continue(line_number, "No variable with name " + variable_key, instruction);
+            interpreter_error_continue(line_number, message, instruction);
             return;
         }
 
-        interpreter_error(line_number, "No variable with name " + variable_key, instruction);
+        interpreter_error(line_number, message, instruction);
         return;
     }
 
@@ -74,7 +76,8 @@ void process_print(const Instruction& instruction, int line_number, bool check_f
 
 void process_interactive_print(const Instruction& instruction) {
     if (instruction.size() != 2) {
-        std::cerr << "Invalid number of arguments. " << "Example: `PRINT value`" << '\n';
+        std::cerr << "Invalid number of arguments. "
+                  << "Example: `PRINT value`" << '\n';
         return;
     }
 
@@ -107,7 +110,6 @@ void process_interactive_print(const Instruction& instruction) {
 
     if (!has_variable(variable_key)) {
         std::cerr << "No variable with name " << variable_key << '\n';
-
         return;
     }
 
