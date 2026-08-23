@@ -18,12 +18,6 @@ check-deps:
 		exit 1; \
 	}
 
-	@command -v git >/dev/null 2>&1 || { \
-		echo "Error: Git is not installed."; \
-		echo "Install it with: sudo apt update && sudo apt install git"; \
-		exit 1; \
-	}
-
 	@command -v c++ >/dev/null 2>&1 || { \
 		echo "Error: A C++ compiler is not installed."; \
 		echo "Install it with: sudo apt update && sudo apt install build-essential"; \
@@ -31,6 +25,12 @@ check-deps:
 	}
 
 setup: check-deps
+	@command -v git >/dev/null 2>&1 || { \
+		echo "Error: Git is not installed."; \
+		echo "Install it with: sudo apt update && sudo apt install git"; \
+		exit 1; \
+	}
+
 	@echo "Initializing Git submodules..."
 	git submodule update --init --recursive
 
@@ -43,10 +43,19 @@ setup: check-deps
 
 	@ln -sf $(BUILD_DIR)/compile_commands.json compile_commands.json
 
+format:
+	find src include -type f \( \
+		-name '*.c' -o \
+		-name '*.h' -o \
+		-name '*.cpp' -o \
+		-name '*.hpp' \
+	\) -exec clang-format -i {} +
+
 build: check-deps
 	@if [ ! -d "$(BUILD_DIR)" ]; then \
 		$(MAKE) setup; \
 	fi
+
 	@echo "Building CDSL..."
 	cmake --build $(BUILD_DIR) --parallel
 
