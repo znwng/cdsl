@@ -124,8 +124,7 @@ void process_wait(const Instruction& instruction, int line_number, bool check_fl
 
 void process_interactive_wait(const Instruction& instruction) {
     if (instruction.size() != 2) {
-        std::cerr << "Invalid number of arguments. "
-                  << "Example: `WAIT DURATION_MS`" << '\n';
+        std::cerr << "Invalid number of arguments. " << "Example: `WAIT DURATION_MS`" << '\n';
         return;
     }
 

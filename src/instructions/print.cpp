@@ -76,8 +76,7 @@ void process_print(const Instruction& instruction, int line_number, bool check_f
 
 void process_interactive_print(const Instruction& instruction) {
     if (instruction.size() != 2) {
-        std::cerr << "Invalid number of arguments. "
-                  << "Example: `PRINT value`" << '\n';
+        std::cerr << "Invalid number of arguments. " << "Example: `PRINT value`" << '\n';
         return;
     }
 

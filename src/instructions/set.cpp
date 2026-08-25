@@ -110,8 +110,7 @@ void process_set(const Instruction& instruction, int line_number, bool check_fla
 
 void process_interactive_set(const Instruction& instruction) {
     if (instruction.size() != 3) {
-        std::cerr << "Invalid number of arguments. "
-                  << "Example: `SET variable_name value`" << '\n';
+        std::cerr << "Invalid number of arguments. " << "Example: `SET variable_name value`" << '\n';
         return;
     }
 

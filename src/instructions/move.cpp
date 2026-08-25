@@ -173,8 +173,7 @@ void process_move(const Instruction& instruction, int line_number, bool check_fl
 
 void process_interactive_move(const Instruction& instruction) {
     if (instruction.size() != 3) {
-        std::cerr << "Invalid number of arguments. "
-                  << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
+        std::cerr << "Invalid number of arguments. " << "Example: `MOVE COMPONENT_NAME VALUE`" << '\n';
         return;
     }
 
