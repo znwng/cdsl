@@ -7,10 +7,10 @@
 #include <string>
 #include <unordered_map>
 
+#include "color.hpp"
 #include "diagnostics.hpp"
 #include "instructions/instruction.hpp"
 #include "parser.hpp"
-#include "color.hpp"
 
 namespace {
 
