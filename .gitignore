@@ -39,3 +39,4 @@ Thumbs.db
 
 # Scripts (local only)
 deploy.sh
+deploy.hcl
