@@ -5,8 +5,8 @@ CDSL programs are composed of instructions, with each instruction written on a s
 The current instruction set consists of:
 
 * `set` — Create or update a variable
-* `print` — Print a variable or value
-* `move` — Move a component by a specified value
+* `print` — Print a value or the value of a variable
+* `move` — Move a component to a specified value
 * `wait` — Pause execution for a specified duration
 
 Comments can be written using `//`. Empty lines and comment lines are ignored.
@@ -68,7 +68,7 @@ print 100
 print 45.5
 ```
 
-A variable that has not been defined cannot be printed:
+An undefined variable cannot be printed:
 
 ```text
 print $M
@@ -78,7 +78,7 @@ print $M
 
 ## `move`
 
-Moves a specified component by a given value.
+Moves a specified component to a given value.
 
 ### Syntax
 
@@ -90,7 +90,7 @@ The component name is user-defined and identifies the hardware component being c
 
 ### Examples
 
-Move a component by a literal value:
+Move a component to a literal value:
 
 ```text
 move JOINT_2 120
@@ -105,7 +105,7 @@ move JOINT_1 $A
 
 The value must be a valid numeric value, variable, or expression.
 
-Invalid examples:
+Invalid values:
 
 ```text
 move JOINT abc
@@ -122,9 +122,11 @@ move BASE $B
 Once the variable exists, it can be used:
 
 ```text
-set B 1330
+set B 133
 move BASE $B
 ```
+
+The value must also fall within the configured limits of the specified component.
 
 ---
 
@@ -152,6 +154,12 @@ set delay 500
 wait $delay
 ```
 
+Expressions can also be used:
+
+```text
+wait #[250+250]
+```
+
 The delay cannot be negative:
 
 ```text
@@ -163,6 +171,8 @@ Invalid values are rejected:
 ```text
 wait abc
 ```
+
+`wait` accepts integer durations in milliseconds.
 
 ---
 
@@ -179,26 +189,53 @@ move JOINT_1 $angle
 wait $speed
 ```
 
+Variables store floating-point values.
+
 Using an undefined variable results in an error:
 
 ```text
 move BASE $UNKNOWN
 ```
 
+### Variable Names
+
+Variable names must:
+
+* Start with a letter or `_`
+* Contain only letters, digits, and `_`
+
+Valid examples:
+
+```text
+set speed 100
+set _offset 10
+set motor_angle 90
+```
+
+Invalid examples:
+
+```text
+set 123value 10
+set motor-angle 90
+set motor.angle 90
+```
+
 ---
 
 ## Expressions
 
-Expressions can be used where a numeric value is accepted.
+Expressions can be used wherever a numeric value is accepted.
 
-Expressions are enclosed in `#[...]`. Spaces shouldn't be included
+Expressions are enclosed in `#[...]`.
+
+**Expressions must not contain whitespace.**
 
 ```text
-#[10 + 20] // Invalid
-#[10 + 20] // Valid
+#[10+20]     // Valid
+#[10 + 20]   // Invalid
 ```
 
-For example:
+### Examples
 
 ```text
 set A 100
@@ -209,7 +246,7 @@ move JOINT_1 #[45*2]
 wait #[250+250]
 ```
 
-Expressions support arithmetic operators such as:
+Expressions support the following arithmetic operators:
 
 ```text
 +   Addition
@@ -233,6 +270,15 @@ set B 50
 print #[$A+$B]
 ```
 
+Unary `+` and `-` are also supported:
+
+```text
+print #[-$A]
+print #[+$B]
+```
+
+Division by zero and references to undefined variables result in an interpreter error.
+
 ---
 
 ## Comments
@@ -244,13 +290,13 @@ set A 121 // Set A to 121
 print $A // Print A
 ```
 
-A line beginning with `//` is ignored:
+Everything after `//` on the same line is treated as a comment.
+
+Comments can also be used to temporarily disable an instruction:
 
 ```text
-// set A 500
+// move JOINT_1 90
 ```
-
-Comments can also be used to temporarily disable an instruction.
 
 ---
 
@@ -311,12 +357,12 @@ wait -500
 move BASE $UNKNOWN
 ```
 
-These correspond to invalid arguments, invalid variable names, invalid values, negative delays, undefined variables, and unsupported instructions.
+These demonstrate:
 
-You can validate a CDSL file without executing it using:
+* Invalid or missing arguments
+* Invalid variable names
+* Invalid numeric values
+* Negative wait durations
+* Undefined variables
 
-```bash
-cdsl <file>.cdsl --check
-```
-
-This is useful for checking a script for instruction errors before running it.
+Values supplied to `move` are also checked against the configured limits of the specified component.
