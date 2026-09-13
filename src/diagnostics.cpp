@@ -1,28 +1,20 @@
 #include "diagnostics.hpp"
 
-#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
-#include "types.hpp"
+#include "color.hpp"
 
-void display_instruction(const Instruction& instruction_vector) {
-    for (const std::string& token : instruction_vector) {
+void display_instruction(const Instruction& instruction) {
+    for (const std::string& token : instruction) {
         std::cout << token << ' ';
     }
-    std::cout << std::endl;
-}
 
-[[noreturn]]
-void interpreter_error(int line_number, const std::string& message, const Instruction& instruction_vector) {
-    std::cout << Color::RED << "Line " << line_number << '\n' << message << Color::RESET << '\n';
-    display_instruction(instruction_vector);
-    std::exit(EXIT_FAILURE);
-}
-
-void interpreter_error_continue(int line_number, const std::string& message, const Instruction& instruction_vector) {
-    std::cout << Color::RED << "Line " << line_number << '\n' << message << Color::RESET << '\n';
-
-    display_instruction(instruction_vector);
     std::cout << '\n';
+}
+
+void interpreter_error(const std::string& message, const Instruction& instruction) {
+    std::cerr << Color::RED << message << Color::RESET << '\n';
+    display_instruction(instruction);
 }

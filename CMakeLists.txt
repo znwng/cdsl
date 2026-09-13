@@ -10,7 +10,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Dependencies
 # ---------------------------------------------------------
 
-add_subdirectory(external/CLI11)
 add_subdirectory(external/replxx)
 
 # ---------------------------------------------------------
@@ -39,7 +38,6 @@ target_include_directories(cdsl_lib
 target_link_libraries(cdsl_lib
     PUBLIC
     replxx
-    CLI11::CLI11
 )
 
 # ---------------------------------------------------------

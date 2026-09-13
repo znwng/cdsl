@@ -1,5 +1,6 @@
 #include "runtime.hpp"
 
+#include <cstdlib>
 #include <iostream>
 #include <replxx.hxx>
 #include <sstream>
@@ -8,6 +9,8 @@
 
 #include "diagnostics.hpp"
 #include "instructions/instruction.hpp"
+#include "parser.hpp"
+#include "color.hpp"
 
 namespace {
 
@@ -32,62 +35,30 @@ INSTRUCTION_SET get_opcode(const std::string& action) {
 
 }  // namespace
 
-void process_instruction(const Instruction& instruction, int line_number, bool check_flag) {
+void process_instruction(const Instruction& instruction) {
     if (instruction.empty()) {
         return;
     }
 
     switch (get_opcode(instruction[0])) {
         case INSTRUCTION_SET::SET:
-            instructions::process_set(instruction, line_number, check_flag);
+            instructions::process_set(instruction);
             break;
 
         case INSTRUCTION_SET::PRINT:
-            instructions::process_print(instruction, line_number, check_flag);
+            instructions::process_print(instruction);
             break;
 
         case INSTRUCTION_SET::MOVE:
-            instructions::process_move(instruction, line_number, check_flag);
+            instructions::process_move(instruction);
             break;
 
         case INSTRUCTION_SET::WAIT:
-            instructions::process_wait(instruction, line_number, check_flag);
+            instructions::process_wait(instruction);
             break;
 
         case INSTRUCTION_SET::INVALID:
-            if (check_flag) {
-                interpreter_error_continue(line_number, "Invalid action " + instruction[0], instruction);
-            } else {
-                interpreter_error(line_number, "Invalid action " + instruction[0], instruction);
-            }
-            break;
-    }
-}
-
-void process_interactive_instruction(const Instruction& instruction) {
-    if (instruction.empty()) {
-        return;
-    }
-
-    switch (get_opcode(instruction[0])) {
-        case INSTRUCTION_SET::SET:
-            instructions::process_interactive_set(instruction);
-            break;
-
-        case INSTRUCTION_SET::PRINT:
-            instructions::process_interactive_print(instruction);
-            break;
-
-        case INSTRUCTION_SET::MOVE:
-            instructions::process_interactive_move(instruction);
-            break;
-
-        case INSTRUCTION_SET::WAIT:
-            instructions::process_interactive_wait(instruction);
-            break;
-
-        case INSTRUCTION_SET::INVALID:
-            std::cerr << "Invalid action\n";
+            interpreter_error("Invalid action: " + instruction[0], instruction);
             break;
     }
 }
@@ -154,21 +125,10 @@ void run_interactive_mode() {
             continue;
         }
 
-        std::istringstream iss(command);
+        Instruction instruction = tokenize(command);
 
-        Instruction tokens;
-        std::string token;
-
-        while (iss >> token) {
-            if (token.starts_with("//")) {
-                break;
-            }
-
-            tokens.push_back(token);
-        }
-
-        if (!tokens.empty()) {
-            process_interactive_instruction(tokens);
+        if (!instruction.empty()) {
+            process_instruction(instruction);
         }
     }
 

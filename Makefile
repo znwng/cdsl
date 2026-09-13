@@ -1,4 +1,4 @@
-.PHONY: all setup build clean rebuild check-deps
+.PHONY: all check-deps setup build clean rebuild format
 
 BUILD_DIR := build
 BUILD_TYPE ?= Debug
@@ -24,13 +24,13 @@ check-deps:
 		exit 1; \
 	}
 
-setup: check-deps
 	@command -v git >/dev/null 2>&1 || { \
 		echo "Error: Git is not installed."; \
 		echo "Install it with: sudo apt update && sudo apt install git"; \
 		exit 1; \
 	}
 
+setup: check-deps
 	@echo "Initializing Git submodules..."
 	git submodule update --init --recursive
 
@@ -43,7 +43,17 @@ setup: check-deps
 
 	@ln -sf $(BUILD_DIR)/compile_commands.json compile_commands.json
 
+build: setup
+	@echo "Building CDSL..."
+	cmake --build $(BUILD_DIR) --parallel
+
 format:
+	@command -v clang-format >/dev/null 2>&1 || { \
+		echo "Error: clang-format is not installed."; \
+		echo "Install it with: sudo apt update && sudo apt install clang-format"; \
+		exit 1; \
+	}
+
 	find src include -type f \( \
 		-name '*.c' -o \
 		-name '*.h' -o \
@@ -51,18 +61,9 @@ format:
 		-name '*.hpp' \
 	\) -exec clang-format -i {} +
 
-build: check-deps
-	@if [ ! -d "$(BUILD_DIR)" ]; then \
-		$(MAKE) setup; \
-	fi
-
-	@echo "Building CDSL..."
-	cmake --build $(BUILD_DIR) --parallel
-
 clean:
 	@echo "Cleaning build files..."
 	rm -rf $(BUILD_DIR) compile_commands.json
 
 rebuild: clean
-	$(MAKE) setup
 	$(MAKE) build
