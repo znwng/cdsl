@@ -1,11 +1,13 @@
-.PHONY: all check-deps setup build clean rebuild format
+.PHONY: all clean rebuild check install
 
 BUILD_DIR := build
 BUILD_TYPE ?= Debug
+INSTALL_DIR := $(HOME)/.local/bin
+BINARY := cdsl
 
-all: build
+all: $(BUILD_DIR)/$(BINARY)
 
-check-deps:
+check:
 	@command -v cmake >/dev/null 2>&1 || { \
 		echo "Error: CMake is not installed."; \
 		echo "Install it with: sudo apt update && sudo apt install cmake"; \
@@ -30,7 +32,7 @@ check-deps:
 		exit 1; \
 	}
 
-setup: check-deps
+$(BUILD_DIR)/build.ninja: check
 	@echo "Initializing Git submodules..."
 	git submodule update --init --recursive
 
@@ -43,27 +45,22 @@ setup: check-deps
 
 	@ln -sf $(BUILD_DIR)/compile_commands.json compile_commands.json
 
-build: setup
+$(BUILD_DIR)/$(BINARY): $(BUILD_DIR)/build.ninja
 	@echo "Building CDSL..."
 	cmake --build $(BUILD_DIR) --parallel
-
-format:
-	@command -v clang-format >/dev/null 2>&1 || { \
-		echo "Error: clang-format is not installed."; \
-		echo "Install it with: sudo apt update && sudo apt install clang-format"; \
-		exit 1; \
-	}
-
-	find src include -type f \( \
-		-name '*.c' -o \
-		-name '*.h' -o \
-		-name '*.cpp' -o \
-		-name '*.hpp' \
-	\) -exec clang-format -i {} +
 
 clean:
 	@echo "Cleaning build files..."
 	rm -rf $(BUILD_DIR) compile_commands.json
 
 rebuild: clean
-	$(MAKE) build
+	$(MAKE)
+
+install: $(BUILD_DIR)/$(BINARY)
+	@echo "Installing CDSL to $(INSTALL_DIR)..."
+	@mkdir -p $(INSTALL_DIR)
+	@install -m 755 $(BUILD_DIR)/$(BINARY) $(INSTALL_DIR)/$(BINARY)
+
+uninstall:
+	@echo "Removing CDSL from $(INSTALL_DIR)..."
+	@rm -f $(INSTALL_DIR)/$(BINARY)

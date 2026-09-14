@@ -9,21 +9,23 @@ The current instruction set consists of:
 * `move` — Move a component to a specified value
 * `wait` — Pause execution for a specified duration
 
+Instruction names are case-sensitive and should be written in lowercase.
+
 Comments can be written using `//`. Empty lines and comment lines are ignored.
 
----
+## Instructions
 
-## `set`
+### `set`
 
 Creates a variable or changes the value of an existing variable.
 
-### Syntax
+#### Syntax
 
 ```text
 set <variable> <value>
 ```
 
-### Examples
+#### Examples
 
 ```text
 set A 121
@@ -31,7 +33,7 @@ set speed 100
 set angle 45.5
 ```
 
-Variable names must be valid identifiers. Values can be numeric literals, variables, or expressions.
+Values can be numeric literals, variables, or expressions.
 
 A variable is referenced using `$`:
 
@@ -40,19 +42,18 @@ set A 121
 set B $A
 ```
 
----
 
-## `print`
+### `print`
 
 Prints a value or the value of a variable.
 
-### Syntax
+#### Syntax
 
 ```text
 print <value>
 ```
 
-### Examples
+#### Examples
 
 Print a variable:
 
@@ -68,19 +69,27 @@ print 100
 print 45.5
 ```
 
+Expressions can also be evaluated:
+
+```text
+print #[10+20*2]
+```
+
 An undefined variable cannot be printed:
 
 ```text
 print $M
 ```
+<br>
 
----
+> Note: `set` and `print` are purely user convenience. 
 
-## `move`
+
+### `move`
 
 Moves a specified component to a given value.
 
-### Syntax
+#### Syntax
 
 ```text
 move <component> <value>
@@ -88,7 +97,7 @@ move <component> <value>
 
 The component name is user-defined and identifies the hardware component being controlled.
 
-### Examples
+#### Examples
 
 Move a component to a literal value:
 
@@ -101,6 +110,13 @@ Use a variable:
 ```text
 set A 121
 move JOINT_1 $A
+```
+
+Use an expression:
+
+```text
+set offset 10
+move JOINT_1 #[30+$offset]
 ```
 
 The value must be a valid numeric value, variable, or expression.
@@ -128,19 +144,20 @@ move BASE $B
 
 The value must also fall within the configured limits of the specified component.
 
----
+The current hardware implementation is a placeholder and does not yet communicate with a physical robot.
 
-## `wait`
+
+### `wait`
 
 Pauses execution for a specified number of milliseconds.
 
-### Syntax
+#### Syntax
 
 ```text
 wait <duration_ms>
 ```
 
-### Examples
+#### Examples
 
 ```text
 wait 500
@@ -174,9 +191,8 @@ wait abc
 
 `wait` accepts integer durations in milliseconds.
 
----
 
-## Variables
+### Variables
 
 Variables are created using `set` and referenced using `$`.
 
@@ -197,7 +213,7 @@ Using an undefined variable results in an error:
 move BASE $UNKNOWN
 ```
 
-### Variable Names
+#### Variable Names
 
 Variable names must:
 
@@ -220,9 +236,7 @@ set motor-angle 90
 set motor.angle 90
 ```
 
----
-
-## Expressions
+### Expressions
 
 Expressions can be used wherever a numeric value is accepted.
 
@@ -235,25 +249,27 @@ Expressions are enclosed in `#[...]`.
 #[10 + 20]   // Invalid
 ```
 
-### Examples
+#### Examples
 
 ```text
 set A 100
 set B #[50+25]
 
 print #[$A+$B]
+
 move JOINT_1 #[45*2]
+
 wait #[250+250]
 ```
 
 Expressions support the following arithmetic operators:
 
-```text
-+   Addition
--   Subtraction
-*   Multiplication
-/   Division
-```
+| Operator | Operation      |
+| -------- | -------------- |
+| `+`      | Addition       |
+| `-`      | Subtraction    |
+| `*`      | Multiplication |
+| `/`      | Division       |
 
 Parentheses can be used to control evaluation order:
 
@@ -279,15 +295,14 @@ print #[+$B]
 
 Division by zero and references to undefined variables result in an interpreter error.
 
----
 
-## Comments
+### Comments
 
 Use `//` to add comments.
 
 ```text
 set A 121 // Set A to 121
-print $A // Print A
+print $A  // Print A
 ```
 
 Everything after `//` on the same line is treated as a comment.
@@ -298,29 +313,56 @@ Comments can also be used to temporarily disable an instruction:
 // move JOINT_1 90
 ```
 
----
+### Components and Configuration
+
+CDSL components are configured through:
+
+```text
+~/.config/cdsl/config.toml
+```
+
+A component has its allowed value range.
+
+For example:
+
+```toml
+[component.BASE]
+min = 0
+max = 180
+```
+
+A `move` instruction validates the requested value against the configured component limits before executing it.
+
+The configuration directory and file are created automatically if they do not already exist.
+
 
 ## Complete Example
 
 ```text
 // Configure initial values
+
 set A 121
 set speed 100
 set delay 500
 
 // Display values
+
 print $A
 print $speed
 
 // Move components
+
 move JOINT_1 $speed
 move JOINT_2 120
 
 // Wait between operations
+
 wait $delay
 
 // Use an expression
+
 set speed #[50*2]
+
 move JOINT_1 $speed
 
 wait #[250+250]
@@ -331,16 +373,15 @@ print $speed
 This demonstrates the basic CDSL workflow:
 
 ```text
-set    → define values
-print  → inspect values
-move   → control components
-wait   → introduce delays
-#[...] → calculate values
-$...   → reference variables
-//     → add comments
+set      → define values
+print    → inspect values
+move     → control components
+wait     → introduce delays
+#[...]   → calculate values
+$...     → reference variables
+//       → add comments
 ```
 
----
 
 ## Validation
 
