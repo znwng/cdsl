@@ -6,15 +6,19 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# ---------------------------------------------------------
 # Dependencies
-# ---------------------------------------------------------
 
 add_subdirectory(external/replxx)
 
-# ---------------------------------------------------------
+# toml++ is header-only
+add_library(tomlplusplus INTERFACE)
+
+target_include_directories(tomlplusplus
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/tomlplusplus/include
+)
+
 # CDSL library
-# ---------------------------------------------------------
 
 file(GLOB_RECURSE CDSL_SOURCES
     CONFIGURE_DEPENDS
@@ -38,11 +42,10 @@ target_include_directories(cdsl_lib
 target_link_libraries(cdsl_lib
     PUBLIC
     replxx
+    tomlplusplus
 )
 
-# ---------------------------------------------------------
 # Main executable
-# ---------------------------------------------------------
 
 add_executable(cdsl
     src/main.cpp
