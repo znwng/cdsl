@@ -1,11 +1,14 @@
-.PHONY: all clean rebuild check install
+.PHONY: all clean rebuild check install uninstall config
 
 BUILD_DIR := build
 BUILD_TYPE ?= Debug
 INSTALL_DIR := $(HOME)/.local/bin
+CONFIG_DIR := $(HOME)/.config/cdsl
+CONFIG_FILE := $(CONFIG_DIR)/config.toml
+EXAMPLE_CONFIG := example-config.toml
 BINARY := cdsl
 
-all: $(BUILD_DIR)/$(BINARY)
+all: $(BUILD_DIR)/$(BINARY) config
 
 check:
 	@command -v cmake >/dev/null 2>&1 || { \
@@ -48,6 +51,16 @@ $(BUILD_DIR)/build.ninja: check
 $(BUILD_DIR)/$(BINARY): $(BUILD_DIR)/build.ninja
 	@echo "Building CDSL..."
 	cmake --build $(BUILD_DIR) --parallel
+
+config:
+	@echo "Setting up CDSL configuration..."
+	@mkdir -p $(CONFIG_DIR)
+	@if [ ! -f $(CONFIG_FILE) ]; then \
+		cp $(EXAMPLE_CONFIG) $(CONFIG_FILE); \
+		echo "Created $(CONFIG_FILE)"; \
+	else \
+		echo "$(CONFIG_FILE) already exists; leaving it unchanged."; \
+	fi
 
 clean:
 	@echo "Cleaning build files..."

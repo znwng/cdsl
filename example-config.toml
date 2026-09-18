@@ -1,0 +1,23 @@
+[component.base]
+min = 0
+max = 180
+
+[component.shoulder]
+min = 0
+max = 180
+
+[component.elbow]
+min = 0
+max = 180
+
+[component.wrist]
+min = 0
+max = 180
+
+[component.hand]
+min = 0
+max = 180
+
+[component.claw]
+min = 0
+max = 90
