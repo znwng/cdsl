@@ -44,13 +44,13 @@ bool is_valid_variable_name(const std::string& name) {
     }
 
     // First character must be a letter or underscore
-    if (!(std::isalpha(static_cast<unsigned char>(name[0])) || name[0] == '_')) {
+    if ((std::isalpha(static_cast<unsigned char>(name[0])) == 0) && name[0] != '_') {
         return false;
     }
 
     // Remaining characters must be letters, digits, or underscores
     for (size_t i = 1; i < name.size(); i++) {
-        if (!(std::isalnum(static_cast<unsigned char>(name[i])) || name[i] == '_')) {
+        if ((std::isalnum(static_cast<unsigned char>(name[i])) == 0) && name[i] != '_') {
             return false;
         }
     }

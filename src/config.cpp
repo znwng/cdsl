@@ -12,39 +12,39 @@ namespace config {
 void check_and_create_config_dir() {
     const char* home = std::getenv("HOME");
 
-    if (!home) {
+    if (home == nullptr) {
         throw std::runtime_error("HOME is not set");
     }
 
-    const std::filesystem::path config_dir = std::filesystem::path(home) / ".config" / "cdsl";
+    const std::filesystem::path CONFIG_DIRECTORY = std::filesystem::path(home) / ".config" / "cdsl";
 
-    std::filesystem::create_directories(config_dir);
+    std::filesystem::create_directories(CONFIG_DIRECTORY);
 
-    const std::filesystem::path config_file = config_dir / "config.toml";
+    const std::filesystem::path CONFIG_FILE = CONFIG_DIRECTORY / "config.toml";
 
-    if (!std::filesystem::exists(config_file)) {
-        std::ofstream{config_file};
+    if (!std::filesystem::exists(CONFIG_FILE)) {
+        std::ofstream{CONFIG_FILE};
     }
 }
 
 toml::table load_config() {
     const char* home = std::getenv("HOME");
 
-    if (!home) {
+    if (home == nullptr) {
         throw std::runtime_error("HOME is not set");
     }
 
-    const auto config_file = std::filesystem::path(home) / ".config" / "cdsl" / "config.toml";
+    const auto CONFIG_FILE = std::filesystem::path(home) / ".config" / "cdsl" / "config.toml";
 
-    return toml::parse_file(config_file.string());
+    return toml::parse_file(CONFIG_FILE.string());
 }
 
 bool component_exists(const std::string& component_name) {
-    const auto config = load_config();
+    const auto CONFIG = load_config();
 
-    const auto* components = config["component"].as_table();
+    const auto* components = CONFIG["component"].as_table();
 
-    if (!components) {
+    if (components == nullptr) {
         return false;
     }
 
@@ -52,28 +52,28 @@ bool component_exists(const std::string& component_name) {
 }
 
 bool value_within_limits(const std::string& component_name, double value) {
-    const auto config = load_config();
+    const auto CONFIG = load_config();
 
-    const auto* components = config["component"].as_table();
+    const auto* components = CONFIG["component"].as_table();
 
-    if (!components) {
+    if (components == nullptr) {
         return false;
     }
 
     const auto* component = (*components)[component_name].as_table();
 
-    if (!component) {
+    if (component == nullptr) {
         return false;
     }
 
-    const auto min = (*component)["min"].value<double>();
-    const auto max = (*component)["max"].value<double>();
+    const auto MIN = (*component)["min"].value<double>();
+    const auto MAX = (*component)["max"].value<double>();
 
-    if (!min || !max) {
+    if (!MIN || !MAX) {
         return false;
     }
 
-    return value >= *min && value <= *max;
+    return value >= *MIN && value <= *MAX;
 }
 
 }  // namespace config

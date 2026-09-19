@@ -17,20 +17,20 @@ namespace {
 enum class INSTRUCTION_SET { SET, PRINT, MOVE, WAIT, INVALID };
 
 INSTRUCTION_SET get_opcode(const std::string& action) {
-    static const std::unordered_map<std::string, INSTRUCTION_SET> opcode_table{
+    static const std::unordered_map<std::string, INSTRUCTION_SET> OPCODE_TABLE{
         {"set", INSTRUCTION_SET::SET},
         {"print", INSTRUCTION_SET::PRINT},
         {"move", INSTRUCTION_SET::MOVE},
         {"wait", INSTRUCTION_SET::WAIT},
     };
 
-    auto it = opcode_table.find(action);
+    auto itr = OPCODE_TABLE.find(action);
 
-    if (it == opcode_table.end()) {
+    if (itr == OPCODE_TABLE.end()) {
         return INSTRUCTION_SET::INVALID;
     }
 
-    return it->second;
+    return itr->second;
 }
 
 }  // namespace
@@ -68,12 +68,12 @@ void run_interactive_mode() {
               << "Enter Ctrl+C, Ctrl+D, or type 'exit' to exit.\n"
               << "Type 'clear' to clear the screen.\n\n";
 
-    replxx::Replxx rx;
+    replxx::Replxx replx;
 
-    rx.set_highlighter_callback([](std::string const& input, replxx::Replxx::colors_t& colors) {
+    replx.set_highlighter_callback([](std::string const& input, replxx::Replxx::colors_t& colors) {
         using replxx::Replxx;
 
-        std::fill(colors.begin(), colors.end(), Replxx::Color::WHITE);
+        std::ranges::fill(colors.begin(), colors.end(), Replxx::Color::WHITE);
 
         std::istringstream iss(input);
         std::string token;
@@ -98,10 +98,10 @@ void run_interactive_mode() {
         }
     });
 
-    rx.history_load(".cdsl_history");
+    replx.history_load(".cdsl_history");
 
     while (true) {
-        char const* input = rx.input((std::string(Color::YELLOW) + "cdsl> " + Color::RESET).c_str());
+        char const* input = replx.input(std::string(Color::YELLOW) + "cdsl> " + Color::RESET);
 
         if (input == nullptr) {
             std::cout << '\n';
@@ -114,14 +114,14 @@ void run_interactive_mode() {
             continue;
         }
 
-        rx.history_add(command);
+        replx.history_add(command);
 
         if (command == "exit") {
             break;
         }
 
         if (command == "clear") {
-            rx.clear_screen();
+            replx.clear_screen();
             continue;
         }
 
@@ -132,5 +132,5 @@ void run_interactive_mode() {
         }
     }
 
-    rx.history_save(".cdsl_history");
+    replx.history_save(".cdsl_history");
 }
