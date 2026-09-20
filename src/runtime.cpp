@@ -70,7 +70,7 @@ void run_interactive_mode() {
         std::cerr << "Unable to determine home directory\n";
         return;
     }
-    const std::filesystem::path HISTORY_FILE = std::filesystem::path(home) / "./cdsl_history";
+    const std::filesystem::path HISTORY_FILE = std::filesystem::path(home) / ".cdsl_history";
 
     std::cout << "Starting interactive mode\n"
               << "Enter Ctrl+C, Ctrl+D, or type 'exit' to exit.\n"
