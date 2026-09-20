@@ -1,6 +1,7 @@
 #include "runtime.hpp"
 
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <replxx.hxx>
 #include <sstream>
@@ -64,6 +65,13 @@ void process_instruction(const Instruction& instruction) {
 }
 
 void run_interactive_mode() {
+    const char* home = std::getenv("HOME");
+    if (home == nullptr) {
+        std::cerr << "Unable to determine home directory\n";
+        return;
+    }
+    const std::filesystem::path HISTORY_FILE = std::filesystem::path(home) / "./cdsl_history";
+
     std::cout << "Starting interactive mode\n"
               << "Enter Ctrl+C, Ctrl+D, or type 'exit' to exit.\n"
               << "Type 'clear' to clear the screen.\n\n";
@@ -98,7 +106,7 @@ void run_interactive_mode() {
         }
     });
 
-    replx.history_load(".cdsl_history");
+    replx.history_load(HISTORY_FILE.string());
 
     while (true) {
         char const* input = replx.input(std::string(Color::YELLOW) + "cdsl> " + Color::RESET);
@@ -132,5 +140,5 @@ void run_interactive_mode() {
         }
     }
 
-    replx.history_save(".cdsl_history");
+    replx.history_save(HISTORY_FILE.string());
 }
