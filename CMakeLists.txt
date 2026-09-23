@@ -23,6 +23,7 @@ target_include_directories(tomlplusplus
 file(GLOB_RECURSE CDSL_SOURCES
     CONFIGURE_DEPENDS
     src/*.cpp
+    hw-comm-line/*.cpp
 )
 
 # main.cpp belongs to the executable, not the library

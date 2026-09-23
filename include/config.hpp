@@ -13,4 +13,8 @@ bool component_exists(const std::string& component_name);
 
 bool value_within_limits(const std::string& component_name, double value);
 
+std::string arduino_port();
+
+int arduino_baud_rate();
+
 }  // namespace config

@@ -76,4 +76,28 @@ bool value_within_limits(const std::string& component_name, double value) {
     return value >= *MIN && value <= *MAX;
 }
 
+std::string arduino_port() {
+    const auto CONFIG = load_config();
+
+    const auto PORT = CONFIG["arduino"]["port"].value<std::string>();
+
+    if (!PORT) {
+        throw std::runtime_error("Arduino serial port is not configured");
+    }
+
+    return *PORT;
+}
+
+int arduino_baud_rate() {
+    const auto CONFIG = load_config();
+
+    const auto BAUD_RATE = CONFIG["arduino"]["baud_rate"].value<int64_t>();
+
+    if (!BAUD_RATE) {
+        throw std::runtime_error("Arduino baud rate is not configured");
+    }
+
+    return static_cast<int>(*BAUD_RATE);
+}
+
 }  // namespace config

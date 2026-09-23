@@ -6,6 +6,7 @@
 #include "config.hpp"
 #include "diagnostics.hpp"
 #include "expression.hpp"
+#include "hardware/serial.hpp"
 #include "validation.hpp"
 #include "variables.hpp"
 
@@ -14,8 +15,7 @@ namespace instructions {
 namespace {
 
 void move_function(const std::string& component_label, float value) {
-    // Placeholder code.
-    // To be redefined for actual hardware.
+    hardware::send_command(component_label, value);
     std::printf("Moved %s by %f\n\n", component_label.c_str(), value);
 }
 
