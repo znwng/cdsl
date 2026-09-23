@@ -9,19 +9,6 @@
 #include "hardware/serial.hpp"
 #include "instructions/instruction.hpp"
 
-void move_function(const std::string& component_label, float value) {
-    send_command(component_label, value);
-    std::cout << "Moved " << component_label << " by " << value << "\n\n";
-}
-
-bool validate_move_value(const std::string& component_label, float value) {
-    if (!value_within_limits(component_label, value)) {
-        return false;
-    }
-
-    return true;
-}
-
 void process_move(const Instruction& instruction) {
     if (instruction.size() != 3) {
         interpreter_error(
@@ -52,13 +39,15 @@ void process_move(const Instruction& instruction) {
         try {
             float result = evaluate_expression(expression);
 
-            if (!validate_move_value(component_label, result)) {
+            if (!value_within_limits(component_label, result)) {
                 interpreter_error("Value out of range for " + component_label + ": " + std::to_string(result),
                                   instruction);
                 return;
             }
 
-            move_function(component_label, result);
+            send_command(component_label, result);
+            std::cout << "Moved " << component_label << " by " << value << "\n\n";
+
         } catch (const std::exception& e) {
             interpreter_error(e.what(), instruction);
         }
@@ -77,12 +66,14 @@ void process_move(const Instruction& instruction) {
 
         float result = get_variable(variable_name);
 
-        if (!validate_move_value(component_label, result)) {
+        if (!value_within_limits(component_label, result)) {
             interpreter_error("Value out of range for " + component_label + ": " + std::to_string(result), instruction);
             return;
         }
 
-        move_function(component_label, result);
+        send_command(component_label, result);
+        std::cout << "Moved " << component_label << " by " << value << "\n\n";
+
         return;
     }
 
@@ -94,10 +85,11 @@ void process_move(const Instruction& instruction) {
         return;
     }
 
-    if (!validate_move_value(component_label, *successful_conversion)) {
+    if (!value_within_limits(component_label, *successful_conversion)) {
         interpreter_error("Value out of range for " + component_label + ": " + value, instruction);
         return;
     }
 
-    move_function(component_label, *successful_conversion);
+    send_command(component_label, *successful_conversion);
+    std::cout << "Moved " << component_label << " by " << value << "\n\n";
 }

@@ -16,5 +16,4 @@ void display_instruction(const Instruction& instruction) {
 
 void interpreter_error(const std::string& message, const Instruction& instruction) {
     std::cerr << Color::RED << message << Color::RESET << '\n';
-    display_instruction(instruction);
 }
