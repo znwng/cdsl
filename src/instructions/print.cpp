@@ -1,11 +1,10 @@
-#include "instructions/print.hpp"
-
 #include <iostream>
 #include <string>
 
-#include "diagnostics.hpp"
-#include "expression.hpp"
-#include "variables.hpp"
+#include "core/diagnostics.hpp"
+#include "core/expression.hpp"
+#include "core/variables.hpp"
+#include "instructions/instruction.hpp"
 
 void process_print(const Instruction& instruction) {
     if (instruction.size() != 2) {

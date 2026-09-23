@@ -1,4 +1,4 @@
-#include "runtime.hpp"
+#include "core/runtime.hpp"
 
 #include <cstdlib>
 #include <filesystem>
@@ -8,10 +8,10 @@
 #include <string>
 #include <unordered_map>
 
-#include "color.hpp"
-#include "diagnostics.hpp"
+#include "core/color.hpp"
+#include "core/diagnostics.hpp"
+#include "core/parser.hpp"
 #include "instructions/instruction.hpp"
-#include "parser.hpp"
 
 enum class INSTRUCTION_SET { SET, PRINT, MOVE, WAIT, INVALID };
 

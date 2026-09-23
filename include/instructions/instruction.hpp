@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../types.hpp"
+#include "core/types.hpp"
 
 void process_set(const Instruction& instruction);
 

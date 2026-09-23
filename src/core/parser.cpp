@@ -2,7 +2,7 @@
 #include <sstream>
 #include <string>
 
-#include "types.hpp"
+#include "core/types.hpp"
 
 Instruction tokenize(const std::string& line) {
     std::istringstream iss(line);

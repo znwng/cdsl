@@ -1,10 +1,10 @@
-#include "diagnostics.hpp"
+#include "core/diagnostics.hpp"
 
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
-#include "color.hpp"
+#include "core/color.hpp"
 
 void display_instruction(const Instruction& instruction) {
     for (const std::string& token : instruction) {

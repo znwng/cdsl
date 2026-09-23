@@ -1,14 +1,13 @@
-#include "instructions/wait.hpp"
-
 #include <chrono>
 #include <iostream>
 #include <string>
 #include <thread>
 
-#include "diagnostics.hpp"
-#include "expression.hpp"
-#include "validation.hpp"
-#include "variables.hpp"
+#include "core/diagnostics.hpp"
+#include "core/expression.hpp"
+#include "core/validation.hpp"
+#include "core/variables.hpp"
+#include "instructions/instruction.hpp"
 
 void wait_function(int delay) {
     // Placeholder code.

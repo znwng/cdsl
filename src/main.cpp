@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string_view>
 
-#include "runtime.hpp"
+#include "core/runtime.hpp"
 
 int main(int argc, char* argv[]) {
     if (argc > 1) {

@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "config.hpp"
+#include "core/config.hpp"
 
 void send_command(const std::string& component_label, float value) {
     const std::string port = arduino_port();

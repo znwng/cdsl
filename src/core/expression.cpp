@@ -1,10 +1,10 @@
-#include "expression.hpp"
+#include "core/expression.hpp"
 
 #include <cctype>
 #include <stdexcept>
 #include <string>
 
-#include "variables.hpp"
+#include "core/variables.hpp"
 
 void skip_whitespace(const std::string& expression, size_t& pos) {
     while (pos < expression.size() && (std::isspace(static_cast<unsigned char>(expression[pos])) != 0)) {
