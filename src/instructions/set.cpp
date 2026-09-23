@@ -8,8 +8,6 @@
 #include "validation.hpp"
 #include "variables.hpp"
 
-namespace instructions {
-
 void process_set(const Instruction& instruction) {
     if (instruction.size() != 3) {
         interpreter_error("Invalid number of arguments. Example: `SET VARIABLE VALUE`", instruction);
@@ -71,5 +69,3 @@ void process_set(const Instruction& instruction) {
 
     std::cout << "variable " << variable_key << " set to " << variable_value << '\n';
 }
-
-}  // namespace instructions

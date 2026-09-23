@@ -1,6 +1,6 @@
 #include "instructions/move.hpp"
 
-#include <cstdio>
+#include <iostream>
 #include <string>
 
 #include "config.hpp"
@@ -10,24 +10,18 @@
 #include "validation.hpp"
 #include "variables.hpp"
 
-namespace instructions {
-
-namespace {
-
 void move_function(const std::string& component_label, float value) {
-    hardware::send_command(component_label, value);
-    std::printf("Moved %s by %f\n\n", component_label.c_str(), value);
+    send_command(component_label, value);
+    std::cout << "Moved " << component_label << " by " << value << "\n\n";
 }
 
 bool validate_move_value(const std::string& component_label, float value) {
-    if (!config::value_within_limits(component_label, value)) {
+    if (!value_within_limits(component_label, value)) {
         return false;
     }
 
     return true;
 }
-
-}  // namespace
 
 void process_move(const Instruction& instruction) {
     if (instruction.size() != 3) {
@@ -40,7 +34,7 @@ void process_move(const Instruction& instruction) {
 
     const std::string& component_label = instruction[1];
 
-    if (!config::component_exists(component_label)) {
+    if (!component_exists(component_label)) {
         interpreter_error("Undefined component: " + component_label, instruction);
         return;
     }
@@ -108,5 +102,3 @@ void process_move(const Instruction& instruction) {
 
     move_function(component_label, *successful_conversion);
 }
-
-}  // namespace instructions

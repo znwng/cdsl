@@ -7,8 +7,6 @@
 #include <string>
 #include <toml++/toml.hpp>
 
-namespace config {
-
 void check_and_create_config_dir() {
     const char* home = std::getenv("HOME");
 
@@ -99,5 +97,3 @@ int arduino_baud_rate() {
 
     return static_cast<int>(*BAUD_RATE);
 }
-
-}  // namespace config

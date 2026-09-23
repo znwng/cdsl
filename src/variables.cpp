@@ -4,9 +4,7 @@
 #include <iostream>
 #include <unordered_map>
 
-namespace {
 std::unordered_map<std::string, float> variables;
-}
 
 void set_variable(const std::string& variable_key, float variable_value) { variables[variable_key] = variable_value; }
 

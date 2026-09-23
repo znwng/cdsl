@@ -10,13 +10,12 @@
 
 #include "config.hpp"
 
-namespace hardware {
 void send_command(const std::string& component_label, float value) {
-    const std::string port = config::arduino_port();
+    const std::string port = arduino_port();
 
     speed_t baud_rate;
 
-    switch (config::arduino_baud_rate()) {
+    switch (arduino_baud_rate()) {
         case 9600:
             baud_rate = B9600;
             break;
@@ -85,5 +84,3 @@ void send_command(const std::string& component_label, float value) {
 
     close(serial);
 }
-
-}  // namespace hardware

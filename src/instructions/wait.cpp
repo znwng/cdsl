@@ -1,7 +1,7 @@
 #include "instructions/wait.hpp"
 
 #include <chrono>
-#include <cstdio>
+#include <iostream>
 #include <string>
 #include <thread>
 
@@ -10,19 +10,12 @@
 #include "validation.hpp"
 #include "variables.hpp"
 
-namespace instructions {
-
-namespace {
-
 void wait_function(int delay) {
     // Placeholder code.
     // Actual delay implementation must eventually be handled by hardware.
-    std::printf("Waiting for %d milliseconds\n\n", delay);
-
+    std::cout << "Waiting for " << delay << " milliseconds\n\n";
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 }
-
-}  // namespace
 
 void process_wait(const Instruction& instruction) {
     if (instruction.size() != 2) {
@@ -84,5 +77,3 @@ void process_wait(const Instruction& instruction) {
 
     wait_function(delay);
 }
-
-}  // namespace instructions

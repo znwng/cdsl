@@ -7,8 +7,6 @@
 #include "expression.hpp"
 #include "variables.hpp"
 
-namespace instructions {
-
 void process_print(const Instruction& instruction) {
     if (instruction.size() != 2) {
         interpreter_error("Invalid number of arguments. Example: `PRINT VALUE`", instruction);
@@ -50,5 +48,3 @@ void process_print(const Instruction& instruction) {
 
     std::cout << get_variable(variable_key) << '\n';
 }
-
-}  // namespace instructions

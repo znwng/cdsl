@@ -13,8 +13,6 @@
 #include "instructions/instruction.hpp"
 #include "parser.hpp"
 
-namespace {
-
 enum class INSTRUCTION_SET { SET, PRINT, MOVE, WAIT, INVALID };
 
 INSTRUCTION_SET get_opcode(const std::string& action) {
@@ -34,8 +32,6 @@ INSTRUCTION_SET get_opcode(const std::string& action) {
     return itr->second;
 }
 
-}  // namespace
-
 void process_instruction(const Instruction& instruction) {
     if (instruction.empty()) {
         return;
@@ -43,19 +39,19 @@ void process_instruction(const Instruction& instruction) {
 
     switch (get_opcode(instruction[0])) {
         case INSTRUCTION_SET::SET:
-            instructions::process_set(instruction);
+            process_set(instruction);
             break;
 
         case INSTRUCTION_SET::PRINT:
-            instructions::process_print(instruction);
+            process_print(instruction);
             break;
 
         case INSTRUCTION_SET::MOVE:
-            instructions::process_move(instruction);
+            process_move(instruction);
             break;
 
         case INSTRUCTION_SET::WAIT:
-            instructions::process_wait(instruction);
+            process_wait(instruction);
             break;
 
         case INSTRUCTION_SET::INVALID:
