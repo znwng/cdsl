@@ -2,7 +2,7 @@
 
 #include <string>
 
-void set_variable(const std::string& name, float value);
+void set_variable(const std::string& variable_key, float variable_value);
 
 bool has_variable(const std::string& name);
 

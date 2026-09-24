@@ -15,7 +15,7 @@ float get_variable(const std::string& name) { return variables.at(name); }
 void clear_variables() { variables.clear(); }
 
 void display_variables() {
-    for (const auto& [key, value] : variables) {
-        std::cout << key << " : " << value << '\n';
+    for (const auto& [KEY, VALUE] : variables) {
+        std::cout << KEY << " : " << VALUE << '\n';
     }
 }

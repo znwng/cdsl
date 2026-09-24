@@ -11,7 +11,7 @@
 #include "core/config.hpp"
 
 void send_command(const std::string& component_label, float value) {
-    const std::string port = arduino_port();
+    const std::string PORT = arduino_port();
 
     speed_t baud_rate;
 
@@ -40,10 +40,10 @@ void send_command(const std::string& component_label, float value) {
             throw std::runtime_error("Unsupported Arduino baud rate");
     }
 
-    int serial = open(port.c_str(), O_WRONLY | O_NOCTTY);
+    int serial = open(PORT.c_str(), O_WRONLY | O_NOCTTY);
 
     if (serial == -1) {
-        std::cerr << "Failed to open " << port << '\n';
+        std::cerr << "Failed to open " << PORT << '\n';
         return;
     }
 
@@ -74,11 +74,11 @@ void send_command(const std::string& component_label, float value) {
         return;
     }
 
-    const std::string message = component_label + " " + std::to_string(value) + '\n';
+    const std::string MESSAGE = component_label + " " + std::to_string(value) + '\n';
 
-    const ssize_t bytes_written = write(serial, message.c_str(), message.size());
+    const ssize_t BYTES_WRITTEN = write(serial, MESSAGE.c_str(), MESSAGE.size());
 
-    if (bytes_written == -1) {
+    if (BYTES_WRITTEN == -1) {
         std::cerr << "Failed to send command\n";
     }
 

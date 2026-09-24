@@ -111,9 +111,9 @@ float parse_term(const std::string& expression, size_t& pos) {
             break;
         }
 
-        char op = expression[pos];
+        char ope = expression[pos];
 
-        if (op != '*' && op != '/') {
+        if (ope != '*' && ope != '/') {
             break;
         }
 
@@ -121,7 +121,7 @@ float parse_term(const std::string& expression, size_t& pos) {
 
         float rhs = parse_factor(expression, pos);
 
-        if (op == '*') {
+        if (ope == '*') {
             value *= rhs;
         } else {
             if (rhs == 0.0F) {
@@ -146,9 +146,9 @@ float parse_expression(const std::string& expression, size_t& pos) {
             break;
         }
 
-        char op = expression[pos];
+        char ope = expression[pos];
 
-        if (op != '+' && op != '-') {
+        if (ope != '+' && ope != '-') {
             break;
         }
 
@@ -156,7 +156,7 @@ float parse_expression(const std::string& expression, size_t& pos) {
 
         float rhs = parse_term(expression, pos);
 
-        if (op == '+') {
+        if (ope == '+') {
             value += rhs;
         } else {
             value -= rhs;
