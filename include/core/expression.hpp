@@ -1,5 +1,6 @@
 #pragma once
 
+#include <expected>
 #include <string>
 
-float evaluate_expression(const std::string& expression);
+std::expected<float, std::string> evaluate_expression(const std::string& expression);

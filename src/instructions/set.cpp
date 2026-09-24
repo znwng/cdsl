@@ -30,19 +30,21 @@ void process_set(const Instruction& instruction) {
             return;
         }
 
-        std::string expression = value.substr(2, value.size() - 3);
+        const std::string EXPRESSION = value.substr(2, value.size() - 3);
 
-        try {
-            variable_value = evaluate_expression(expression);
-        } catch (const std::exception& e) {
-            diagnostics::error(e.what(), instruction);
+        auto result = evaluate_expression(EXPRESSION);
+
+        if (!result) {
+            diagnostics::error(result.error(), instruction);
             return;
         }
+
+        variable_value = *result;
     }
 
     // Variable
     else if (value.starts_with('$')) {
-        std::string variable_name = value.substr(1);
+        const std::string variable_name = value.substr(1);
 
         if (!has_variable(variable_name)) {
             diagnostics::error("Unknown variable: " + variable_name, instruction);
@@ -54,16 +56,17 @@ void process_set(const Instruction& instruction) {
 
     // Literal float
     else {
-        auto successful_conversion = is_valid_float_value(value);
+        auto result = is_valid_float_value(value);
 
-        if (!successful_conversion) {
-            diagnostics::error(successful_conversion.error(), instruction);
+        if (!result) {
+            diagnostics::error(result.error(), instruction);
             return;
         }
 
-        variable_value = *successful_conversion;
+        variable_value = *result;
     }
 
+    // Store variable
     set_variable(variable_key, variable_value);
 
     std::cout << "variable " << variable_key << " set to " << variable_value << '\n';

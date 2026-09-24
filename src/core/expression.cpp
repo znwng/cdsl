@@ -1,108 +1,195 @@
 #include "core/expression.hpp"
 
 #include <cctype>
-#include <stdexcept>
+#include <charconv>
 #include <string>
 
 #include "core/variables.hpp"
 
+namespace {
+
 void skip_whitespace(const std::string& expression, size_t& pos) {
-    while (pos < expression.size() && (std::isspace(static_cast<unsigned char>(expression[pos])) != 0)) {
+    while (pos < expression.size() && std::isspace(static_cast<unsigned char>(expression[pos])) != 0) {
         ++pos;
     }
 }
 
-float parse_expression(const std::string& expression, size_t& pos);
-float parse_term(const std::string& expression, size_t& pos);
-float parse_factor(const std::string& expression, size_t& pos);
-float parse_primary(const std::string& expression, size_t& pos);
+std::expected<float, std::string> parse_expression(const std::string& expression, size_t& pos);
 
-float parse_primary(const std::string& expression, size_t& pos) {
+std::expected<float, std::string> parse_term(const std::string& expression, size_t& pos);
+
+std::expected<float, std::string> parse_factor(const std::string& expression, size_t& pos);
+
+std::expected<float, std::string> parse_primary(const std::string& expression, size_t& pos);
+
+// Primary
+//
+// Handles:
+//
+//     numbers
+//     variables
+//     (expressions)
+
+std::expected<float, std::string> parse_primary(const std::string& expression, size_t& pos) {
     skip_whitespace(expression, pos);
 
     if (pos >= expression.size()) {
-        throw std::runtime_error("Unexpected end of expression");
+        return std::unexpected("Unexpected end of expression");
     }
 
     // Parenthesized expression
     if (expression[pos] == '(') {
         ++pos;
 
-        float value = parse_expression(expression, pos);
+        auto value = parse_expression(expression, pos);
+
+        if (!value) {
+            return std::unexpected(value.error());
+        }
 
         skip_whitespace(expression, pos);
 
         if (pos >= expression.size() || expression[pos] != ')') {
-            throw std::runtime_error("Expected ')'");
+            return std::unexpected("Expected ')'");
         }
 
         ++pos;
 
-        return value;
+        return *value;
     }
 
     // Variable: $variable_name
     if (expression[pos] == '$') {
         ++pos;
 
-        size_t start = pos;
+        const size_t START = pos;
 
         if (pos >= expression.size() ||
-            ((std::isalpha(static_cast<unsigned char>(expression[pos])) == 0) && expression[pos] != '_')) {
-            throw std::runtime_error("Expected variable name after '$'");
+            (std::isalpha(static_cast<unsigned char>(expression[pos])) == 0 && expression[pos] != '_')) {
+            return std::unexpected("Expected variable name after '$'");
         }
 
         ++pos;
 
         while (pos < expression.size() &&
-               ((std::isalnum(static_cast<unsigned char>(expression[pos])) != 0) || expression[pos] == '_')) {
+               (std::isalnum(static_cast<unsigned char>(expression[pos])) != 0 || expression[pos] == '_')) {
             ++pos;
         }
 
-        std::string name = expression.substr(start, pos - start);
+        const std::string NAME = expression.substr(START, pos - START);
 
-        if (!has_variable(name)) {
-            throw std::runtime_error("Undefined variable: $" + name);
+        if (!has_variable(NAME)) {
+            return std::unexpected("Undefined variable: $" + NAME);
         }
 
-        return get_variable(name);
+        return get_variable(NAME);
     }
 
     // Number
-    if ((std::isdigit(static_cast<unsigned char>(expression[pos])) != 0) || expression[pos] == '.') {
-        size_t start = pos;
+    if (std::isdigit(static_cast<unsigned char>(expression[pos])) != 0 || expression[pos] == '.') {
+        const size_t START = pos;
 
-        while (pos < expression.size() &&
-               ((std::isdigit(static_cast<unsigned char>(expression[pos])) != 0) || expression[pos] == '.')) {
-            ++pos;
+        bool has_digit = false;
+        bool has_dot = false;
+
+        while (pos < expression.size()) {
+            const char CHARACTER = expression[pos];
+
+            if (std::isdigit(static_cast<unsigned char>(CHARACTER)) != 0) {
+                has_digit = true;
+                ++pos;
+                continue;
+            }
+
+            if (CHARACTER == '.' && !has_dot) {
+                has_dot = true;
+                ++pos;
+                continue;
+            }
+
+            break;
         }
 
-        return std::stof(expression.substr(start, pos - start));
+        if (!has_digit) {
+            return std::unexpected("Invalid number");
+        }
+
+        const std::string NUMBER = expression.substr(START, pos - START);
+
+        float value{};
+
+        const auto [PTR, ERROR] = std::from_chars(NUMBER.data(), NUMBER.data() + NUMBER.size(), value);
+
+        if (ERROR != std::errc{} || PTR != NUMBER.data() + NUMBER.size()) {
+            return std::unexpected("Invalid number: " + NUMBER);
+        }
+
+        return value;
     }
 
-    throw std::runtime_error("Unexpected character: " + std::string(1, expression[pos]));
+    return std::unexpected("Unexpected character: " + std::string(1, expression[pos]));
 }
 
-// Unary + and -
-float parse_factor(const std::string& expression, size_t& pos) {
+// ============================================================
+// Factor
+//
+// Handles:
+//
+//     unary +
+//     unary -
+//
+// Example:
+//
+//     -5
+//     +5
+//     --5
+// ============================================================
+
+std::expected<float, std::string> parse_factor(const std::string& expression, size_t& pos) {
     skip_whitespace(expression, pos);
 
     if (pos < expression.size() && expression[pos] == '-') {
         ++pos;
-        return -parse_factor(expression, pos);
+
+        auto value = parse_factor(expression, pos);
+
+        if (!value) {
+            return std::unexpected(value.error());
+        }
+
+        return -*value;
     }
 
     if (pos < expression.size() && expression[pos] == '+') {
         ++pos;
+
         return parse_factor(expression, pos);
     }
 
     return parse_primary(expression, pos);
 }
 
-// * and /
-float parse_term(const std::string& expression, size_t& pos) {
-    float value = parse_factor(expression, pos);
+// ============================================================
+// Term
+//
+// Handles:
+//
+//     multiplication
+//     division
+//
+// Example:
+//
+//     2 * 3
+//     10 / 2
+//     2 * 3 / 4
+// ============================================================
+
+std::expected<float, std::string> parse_term(const std::string& expression, size_t& pos) {
+    auto value = parse_factor(expression, pos);
+
+    if (!value) {
+        return std::unexpected(value.error());
+    }
 
     while (true) {
         skip_whitespace(expression, pos);
@@ -111,33 +198,55 @@ float parse_term(const std::string& expression, size_t& pos) {
             break;
         }
 
-        char ope = expression[pos];
+        const char OPERATION = expression[pos];
 
-        if (ope != '*' && ope != '/') {
+        if (OPERATION != '*' && OPERATION != '/') {
             break;
         }
 
         ++pos;
 
-        float rhs = parse_factor(expression, pos);
+        auto rhs = parse_factor(expression, pos);
 
-        if (ope == '*') {
-            value *= rhs;
+        if (!rhs) {
+            return std::unexpected(rhs.error());
+        }
+
+        if (OPERATION == '*') {
+            *value *= *rhs;
         } else {
-            if (rhs == 0.0F) {
-                throw std::runtime_error("Division by zero");
+            if (*rhs == 0.0F) {
+                return std::unexpected("Division by zero");
             }
 
-            value /= rhs;
+            *value /= *rhs;
         }
     }
 
-    return value;
+    return *value;
 }
 
-// + and -
-float parse_expression(const std::string& expression, size_t& pos) {
-    float value = parse_term(expression, pos);
+// ============================================================
+// Expression
+//
+// Handles:
+//
+//     addition
+//     subtraction
+//
+// Example:
+//
+//     2 + 3
+//     10 - 4
+//     2 + 3 - 1
+// ============================================================
+
+std::expected<float, std::string> parse_expression(const std::string& expression, size_t& pos) {
+    auto value = parse_term(expression, pos);
+
+    if (!value) {
+        return std::unexpected(value.error());
+    }
 
     while (true) {
         skip_whitespace(expression, pos);
@@ -146,36 +255,50 @@ float parse_expression(const std::string& expression, size_t& pos) {
             break;
         }
 
-        char ope = expression[pos];
+        const char OPERATION = expression[pos];
 
-        if (ope != '+' && ope != '-') {
+        if (OPERATION != '+' && OPERATION != '-') {
             break;
         }
 
         ++pos;
 
-        float rhs = parse_term(expression, pos);
+        auto rhs = parse_term(expression, pos);
 
-        if (ope == '+') {
-            value += rhs;
+        if (!rhs) {
+            return std::unexpected(rhs.error());
+        }
+
+        if (OPERATION == '+') {
+            *value += *rhs;
         } else {
-            value -= rhs;
+            *value -= *rhs;
         }
     }
 
-    return value;
+    return *value;
 }
 
-float evaluate_expression(const std::string& expression) {
+}  // namespace
+
+// ============================================================
+// Public API
+// ============================================================
+
+std::expected<float, std::string> evaluate_expression(const std::string& expression) {
     size_t pos = 0;
 
-    float result = parse_expression(expression, pos);
+    auto result = parse_expression(expression, pos);
+
+    if (!result) {
+        return std::unexpected(result.error());
+    }
 
     skip_whitespace(expression, pos);
 
     if (pos != expression.size()) {
-        throw std::runtime_error("Unexpected character: " + std::string(1, expression[pos]));
+        return std::unexpected("Unexpected character: " + std::string(1, expression[pos]));
     }
 
-    return result;
+    return *result;
 }

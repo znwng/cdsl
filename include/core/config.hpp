@@ -1,22 +1,26 @@
 #pragma once
 
+#include <cstdint>
+#include <expected>
 #include <string>
 #include <toml++/toml.hpp>
 
 namespace config {
 
-void check_and_create_config_dir();
+using Error = std::string;
 
-toml::table load_config();
+std::expected<void, Error> check_and_create_config_dir();
 
-bool component_exists(const std::string& component_name);
+std::expected<toml::table, Error> load_config();
 
-uint8_t component_id(const std::string& component_name);
+std::expected<bool, Error> component_exists(const std::string& component_name);
 
-bool value_within_limits(const std::string& component_name, double value);
+std::expected<uint8_t, Error> component_id(const std::string& component_name);
 
-std::string arduino_port();
+std::expected<bool, Error> value_within_limits(const std::string& component_name, double value);
 
-int arduino_baud_rate();
+std::expected<std::string, Error> arduino_port();
+
+std::expected<int, Error> arduino_baud_rate();
 
 }  // namespace config

@@ -3,46 +3,69 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <stdexcept>
 #include <string>
 #include <toml++/toml.hpp>
 
 namespace config {
 
-void check_and_create_config_dir() {
+std::expected<void, Error> check_and_create_config_dir() {
     const char* home = std::getenv("HOME");
 
     if (home == nullptr) {
-        throw std::runtime_error("HOME is not set");
+        return std::unexpected("HOME is not set");
     }
 
     const std::filesystem::path CONFIG_DIRECTORY = std::filesystem::path(home) / ".config" / "cdsl";
 
-    std::filesystem::create_directories(CONFIG_DIRECTORY);
+    std::error_code ecd;
+
+    std::filesystem::create_directories(CONFIG_DIRECTORY, ecd);
+
+    if (ecd) {
+        return std::unexpected("Failed to create config directory: " + ecd.message());
+    }
 
     const std::filesystem::path CONFIG_FILE = CONFIG_DIRECTORY / "config.toml";
 
-    if (!std::filesystem::exists(CONFIG_FILE)) {
-        std::ofstream{CONFIG_FILE};
+    if (!std::filesystem::exists(CONFIG_FILE, ecd)) {
+        if (ecd) {
+            return std::unexpected("Failed to check config file: " + ecd.message());
+        }
+
+        std::ofstream file(CONFIG_FILE);
+
+        if (!file) {
+            return std::unexpected("Failed to create config file: " + CONFIG_FILE.string());
+        }
     }
+
+    return {};
 }
 
-toml::table load_config() {
+std::expected<toml::table, Error> load_config() {
     const char* home = std::getenv("HOME");
 
     if (home == nullptr) {
-        throw std::runtime_error("HOME is not set");
+        return std::unexpected("HOME is not set");
     }
 
     const auto CONFIG_FILE = std::filesystem::path(home) / ".config" / "cdsl" / "config.toml";
 
-    return toml::parse_file(CONFIG_FILE.string());
+    try {
+        return toml::parse_file(CONFIG_FILE.string());
+    } catch (const toml::parse_error& error) {
+        return std::unexpected("Failed to parse config: " + std::string(error.description()));
+    }
 }
 
-bool component_exists(const std::string& component_name) {
-    const auto CONFIG = load_config();
+std::expected<bool, Error> component_exists(const std::string& component_name) {
+    auto config = load_config();
 
-    const auto* components = CONFIG["component"].as_table();
+    if (!config) {
+        return std::unexpected(config.error());
+    }
+
+    const auto* components = (*config)["component"].as_table();
 
     if (components == nullptr) {
         return false;
@@ -51,38 +74,46 @@ bool component_exists(const std::string& component_name) {
     return components->contains(component_name);
 }
 
-uint8_t component_id(const std::string& component_name) {
-    const auto CONFIG = load_config();
+std::expected<uint8_t, Error> component_id(const std::string& component_name) {
+    auto config = load_config();
 
-    const auto* components = CONFIG["component"].as_table();
+    if (!config) {
+        return std::unexpected(config.error());
+    }
+
+    const auto* components = (*config)["component"].as_table();
 
     if (components == nullptr) {
-        throw std::runtime_error("No components configured");
+        return std::unexpected("No components configured");
     }
 
     const auto* component = (*components)[component_name].as_table();
 
     if (component == nullptr) {
-        throw std::runtime_error("Component not configured: " + component_name);
+        return std::unexpected("Component not configured: " + component_name);
     }
 
     const auto COMPONENT_ID = (*component)["id"].value<int64_t>();
 
     if (!COMPONENT_ID) {
-        throw std::runtime_error("Component ID is not configured: " + component_name);
+        return std::unexpected("Component ID is not configured: " + component_name);
     }
 
     if (*COMPONENT_ID < 1 || *COMPONENT_ID > 255) {
-        throw std::runtime_error("Component ID must be between 1 and 255");
+        return std::unexpected("Component ID must be between 1 and 255");
     }
 
     return static_cast<uint8_t>(*COMPONENT_ID);
 }
 
-bool value_within_limits(const std::string& component_name, double value) {
-    const auto CONFIG = load_config();
+std::expected<bool, Error> value_within_limits(const std::string& component_name, double value) {
+    auto config = load_config();
 
-    const auto* components = CONFIG["component"].as_table();
+    if (!config) {
+        return std::unexpected(config.error());
+    }
+
+    const auto* components = (*config)["component"].as_table();
 
     if (components == nullptr) {
         return false;
@@ -104,25 +135,33 @@ bool value_within_limits(const std::string& component_name, double value) {
     return value >= *MIN && value <= *MAX;
 }
 
-std::string arduino_port() {
-    const auto CONFIG = load_config();
+std::expected<std::string, Error> arduino_port() {
+    auto config = load_config();
 
-    const auto PORT = CONFIG["arduino"]["port"].value<std::string>();
+    if (!config) {
+        return std::unexpected(config.error());
+    }
+
+    const auto PORT = (*config)["arduino"]["port"].value<std::string>();
 
     if (!PORT) {
-        throw std::runtime_error("Arduino serial port is not configured");
+        return std::unexpected("Arduino serial port is not configured");
     }
 
     return *PORT;
 }
 
-int arduino_baud_rate() {
-    const auto CONFIG = load_config();
+std::expected<int, Error> arduino_baud_rate() {
+    auto config = load_config();
 
-    const auto BAUD_RATE = CONFIG["arduino"]["baud_rate"].value<int64_t>();
+    if (!config) {
+        return std::unexpected(config.error());
+    }
+
+    const auto BAUD_RATE = (*config)["arduino"]["baud_rate"].value<int64_t>();
 
     if (!BAUD_RATE) {
-        throw std::runtime_error("Arduino baud rate is not configured");
+        return std::unexpected("Arduino baud rate is not configured");
     }
 
     return static_cast<int>(*BAUD_RATE);

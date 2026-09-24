@@ -13,6 +13,7 @@ void wait_function(int delay) {
     // Placeholder code.
     // Actual delay implementation must eventually be handled by hardware.
     std::cout << "Waiting for " << delay << " milliseconds\n\n";
+
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 }
 
@@ -33,39 +34,40 @@ void process_wait(const Instruction& instruction) {
             return;
         }
 
-        std::string expression = value.substr(2, value.size() - 3);
+        const std::string EXPRESSION = value.substr(2, value.size() - 3);
 
-        try {
-            float result = evaluate_expression(expression);
-            delay = static_cast<int>(result);
-        } catch (const std::exception& e) {
-            diagnostics::error(e.what(), instruction);
+        auto result = evaluate_expression(EXPRESSION);
+
+        if (!result) {
+            diagnostics::error(result.error(), instruction);
             return;
         }
+
+        delay = static_cast<int>(*result);
     }
 
     // Variable
     else if (value.starts_with('$')) {
-        std::string variable_name = value.substr(1);
+        const std::string VARIABLE_NAME = value.substr(1);
 
-        if (!has_variable(variable_name)) {
-            diagnostics::error("Unknown variable: " + variable_name, instruction);
+        if (!has_variable(VARIABLE_NAME)) {
+            diagnostics::error("Unknown variable: " + VARIABLE_NAME, instruction);
             return;
         }
 
-        delay = static_cast<int>(get_variable(variable_name));
+        delay = static_cast<int>(get_variable(VARIABLE_NAME));
     }
 
     // Literal integer
     else {
-        auto successful_conversion = is_valid_int_value(value);
+        auto result = is_valid_int_value(value);
 
-        if (!successful_conversion) {
-            diagnostics::error(successful_conversion.error(), instruction);
+        if (!result) {
+            diagnostics::error(result.error(), instruction);
             return;
         }
 
-        delay = *successful_conversion;
+        delay = *result;
     }
 
     // Validate delay

@@ -21,14 +21,16 @@ void process_print(const Instruction& instruction) {
             return;
         }
 
-        std::string expression = argument.substr(2, argument.size() - 3);
+        const std::string EXPRESSION = argument.substr(2, argument.size() - 3);
 
-        try {
-            float result = evaluate_expression(expression);
-            std::cout << result << '\n';
-        } catch (const std::exception& e) {
-            diagnostics::error(e.what(), instruction);
+        auto result = evaluate_expression(EXPRESSION);
+
+        if (!result) {
+            diagnostics::error(result.error(), instruction);
+            return;
         }
+
+        std::cout << *result << '\n';
 
         return;
     }
