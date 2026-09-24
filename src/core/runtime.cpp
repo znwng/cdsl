@@ -95,7 +95,10 @@ void run_interactive_mode() {
             std::strtof(token.c_str(), &end);
 
             if (end != token.c_str() && *end == '\0') {
-                std::fill(colors.begin() + start, colors.begin() + start + token.size(), Replxx::Color::GREEN);
+                std::fill(
+                    colors.begin() + static_cast<std::ptrdiff_t>(start),
+                    colors.begin() + static_cast<std::ptrdiff_t>(start) + static_cast<std::ptrdiff_t>(token.size()),
+                    Replxx::Color::GREEN);
             }
 
             pos = start + token.size();
