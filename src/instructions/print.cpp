@@ -8,7 +8,7 @@
 
 void process_print(const Instruction& instruction) {
     if (instruction.size() != 2) {
-        interpreter_error("Invalid number of arguments. Example: `PRINT VALUE`", instruction);
+        diagnostics::error("Invalid number of arguments. Example: `PRINT VALUE`", instruction);
         return;
     }
 
@@ -17,7 +17,7 @@ void process_print(const Instruction& instruction) {
     // Expression
     if (argument.starts_with("#[")) {
         if (argument.size() < 3 || argument.back() != ']') {
-            interpreter_error("Invalid expression", instruction);
+            diagnostics::error("Invalid expression", instruction);
             return;
         }
 
@@ -27,7 +27,7 @@ void process_print(const Instruction& instruction) {
             float result = evaluate_expression(expression);
             std::cout << result << '\n';
         } catch (const std::exception& e) {
-            interpreter_error(e.what(), instruction);
+            diagnostics::error(e.what(), instruction);
         }
 
         return;
@@ -41,7 +41,7 @@ void process_print(const Instruction& instruction) {
     }
 
     if (!has_variable(variable_key)) {
-        interpreter_error("No variable with name " + variable_key, instruction);
+        diagnostics::error("No variable with name " + variable_key, instruction);
         return;
     }
 

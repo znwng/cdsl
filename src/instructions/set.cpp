@@ -9,12 +9,12 @@
 
 void process_set(const Instruction& instruction) {
     if (instruction.size() != 3) {
-        interpreter_error("Invalid number of arguments. Example: `SET VARIABLE VALUE`", instruction);
+        diagnostics::error("Invalid number of arguments. Example: `SET VARIABLE VALUE`", instruction);
         return;
     }
 
     if (!is_valid_variable_name(instruction[1])) {
-        interpreter_error("Invalid variable name: " + instruction[1], instruction);
+        diagnostics::error("Invalid variable name: " + instruction[1], instruction);
         return;
     }
 
@@ -26,7 +26,7 @@ void process_set(const Instruction& instruction) {
     // Expression
     if (value.starts_with("#[")) {
         if (value.size() < 3 || value.back() != ']') {
-            interpreter_error("Invalid expression", instruction);
+            diagnostics::error("Invalid expression", instruction);
             return;
         }
 
@@ -35,7 +35,7 @@ void process_set(const Instruction& instruction) {
         try {
             variable_value = evaluate_expression(expression);
         } catch (const std::exception& e) {
-            interpreter_error(e.what(), instruction);
+            diagnostics::error(e.what(), instruction);
             return;
         }
     }
@@ -45,7 +45,7 @@ void process_set(const Instruction& instruction) {
         std::string variable_name = value.substr(1);
 
         if (!has_variable(variable_name)) {
-            interpreter_error("Unknown variable: " + variable_name, instruction);
+            diagnostics::error("Unknown variable: " + variable_name, instruction);
             return;
         }
 
@@ -57,7 +57,7 @@ void process_set(const Instruction& instruction) {
         auto successful_conversion = is_valid_float_value(value);
 
         if (!successful_conversion) {
-            interpreter_error(successful_conversion.error(), instruction);
+            diagnostics::error(successful_conversion.error(), instruction);
             return;
         }
 

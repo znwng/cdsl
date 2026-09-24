@@ -6,6 +6,8 @@
 
 #include "core/color.hpp"
 
+namespace diagnostics {
+
 void display_instruction(const Instruction& instruction) {
     for (const std::string& token : instruction) {
         std::cout << token << ' ';
@@ -14,6 +16,8 @@ void display_instruction(const Instruction& instruction) {
     std::cout << '\n';
 }
 
-void interpreter_error(const std::string& message, const Instruction& instruction) {
+void error(const std::string& message, const Instruction& instruction) {
     std::cerr << Color::RED << message << Color::RESET << '\n';
 }
+
+}  // namespace diagnostics

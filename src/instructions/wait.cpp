@@ -18,7 +18,7 @@ void wait_function(int delay) {
 
 void process_wait(const Instruction& instruction) {
     if (instruction.size() != 2) {
-        interpreter_error("Invalid number of arguments. Example: `WAIT DURATION_MS`", instruction);
+        diagnostics::error("Invalid number of arguments. Example: `WAIT DURATION_MS`", instruction);
         return;
     }
 
@@ -29,7 +29,7 @@ void process_wait(const Instruction& instruction) {
     // Expression
     if (value.starts_with("#[")) {
         if (value.size() < 3 || value.back() != ']') {
-            interpreter_error("Invalid expression", instruction);
+            diagnostics::error("Invalid expression", instruction);
             return;
         }
 
@@ -39,7 +39,7 @@ void process_wait(const Instruction& instruction) {
             float result = evaluate_expression(expression);
             delay = static_cast<int>(result);
         } catch (const std::exception& e) {
-            interpreter_error(e.what(), instruction);
+            diagnostics::error(e.what(), instruction);
             return;
         }
     }
@@ -49,7 +49,7 @@ void process_wait(const Instruction& instruction) {
         std::string variable_name = value.substr(1);
 
         if (!has_variable(variable_name)) {
-            interpreter_error("Unknown variable: " + variable_name, instruction);
+            diagnostics::error("Unknown variable: " + variable_name, instruction);
             return;
         }
 
@@ -61,7 +61,7 @@ void process_wait(const Instruction& instruction) {
         auto successful_conversion = is_valid_int_value(value);
 
         if (!successful_conversion) {
-            interpreter_error(successful_conversion.error(), instruction);
+            diagnostics::error(successful_conversion.error(), instruction);
             return;
         }
 
@@ -70,7 +70,7 @@ void process_wait(const Instruction& instruction) {
 
     // Validate delay
     if (delay < 0) {
-        interpreter_error("Delay cannot be negative: " + std::to_string(delay), instruction);
+        diagnostics::error("Delay cannot be negative: " + std::to_string(delay), instruction);
         return;
     }
 

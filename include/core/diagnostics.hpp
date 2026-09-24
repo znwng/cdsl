@@ -4,6 +4,10 @@
 
 #include "types.hpp"
 
+namespace diagnostics {
+
 void display_instruction(const Instruction& instruction);
 
-void interpreter_error(const std::string& message, const Instruction& instruction);
+void error(const std::string& message, const Instruction& instruction);
+
+}  // namespace diagnostics

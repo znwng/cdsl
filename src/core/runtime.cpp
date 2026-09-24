@@ -55,7 +55,7 @@ void process_instruction(const Instruction& instruction) {
             break;
 
         case INSTRUCTION_SET::INVALID:
-            interpreter_error("Invalid action: " + instruction[0], instruction);
+            diagnostics::error("Invalid action: " + instruction[0], instruction);
             break;
     }
 }
