@@ -2,45 +2,10 @@
 
 #include <cstdlib>
 #include <filesystem>
-#include <fstream>
 #include <string>
 #include <toml++/toml.hpp>
 
 namespace config {
-
-std::expected<void, Error> check_and_create_config_dir() {
-    const char* home = std::getenv("HOME");
-
-    if (home == nullptr) {
-        return std::unexpected("HOME is not set");
-    }
-
-    const std::filesystem::path CONFIG_DIRECTORY = std::filesystem::path(home) / ".config" / "cdsl";
-
-    std::error_code ecd;
-
-    std::filesystem::create_directories(CONFIG_DIRECTORY, ecd);
-
-    if (ecd) {
-        return std::unexpected("Failed to create config directory: " + ecd.message());
-    }
-
-    const std::filesystem::path CONFIG_FILE = CONFIG_DIRECTORY / "config.toml";
-
-    if (!std::filesystem::exists(CONFIG_FILE, ecd)) {
-        if (ecd) {
-            return std::unexpected("Failed to check config file: " + ecd.message());
-        }
-
-        std::ofstream file(CONFIG_FILE);
-
-        if (!file) {
-            return std::unexpected("Failed to create config file: " + CONFIG_FILE.string());
-        }
-    }
-
-    return {};
-}
 
 std::expected<toml::table, Error> load_config() {
     const char* home = std::getenv("HOME");

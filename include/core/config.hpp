@@ -9,8 +9,6 @@ namespace config {
 
 using Error = std::string;
 
-std::expected<void, Error> check_and_create_config_dir();
-
 std::expected<toml::table, Error> load_config();
 
 std::expected<bool, Error> component_exists(const std::string& component_name);
