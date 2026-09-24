@@ -1,5 +1,6 @@
 #include "core/config.hpp"
 
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <string>
@@ -23,14 +24,8 @@ std::expected<toml::table, Error> load_config() {
     }
 }
 
-std::expected<bool, Error> component_exists(const std::string& component_name) {
-    auto config = load_config();
-
-    if (!config) {
-        return std::unexpected(config.error());
-    }
-
-    const auto* components = (*config)["component"].as_table();
+std::expected<bool, Error> component_exists(const toml::table& config, const std::string& component_name) {
+    const auto* components = config["component"].as_table();
 
     if (components == nullptr) {
         return false;
@@ -39,14 +34,8 @@ std::expected<bool, Error> component_exists(const std::string& component_name) {
     return components->contains(component_name);
 }
 
-std::expected<uint8_t, Error> component_id(const std::string& component_name) {
-    auto config = load_config();
-
-    if (!config) {
-        return std::unexpected(config.error());
-    }
-
-    const auto* components = (*config)["component"].as_table();
+std::expected<uint8_t, Error> component_id(const toml::table& config, const std::string& component_name) {
+    const auto* components = config["component"].as_table();
 
     if (components == nullptr) {
         return std::unexpected("No components configured");
@@ -71,14 +60,9 @@ std::expected<uint8_t, Error> component_id(const std::string& component_name) {
     return static_cast<uint8_t>(*COMPONENT_ID);
 }
 
-std::expected<bool, Error> value_within_limits(const std::string& component_name, double value) {
-    auto config = load_config();
-
-    if (!config) {
-        return std::unexpected(config.error());
-    }
-
-    const auto* components = (*config)["component"].as_table();
+std::expected<bool, Error> value_within_limits(const toml::table& config, const std::string& component_name,
+                                               double value) {
+    const auto* components = config["component"].as_table();
 
     if (components == nullptr) {
         return false;
@@ -100,14 +84,8 @@ std::expected<bool, Error> value_within_limits(const std::string& component_name
     return value >= *MIN && value <= *MAX;
 }
 
-std::expected<std::string, Error> arduino_port() {
-    auto config = load_config();
-
-    if (!config) {
-        return std::unexpected(config.error());
-    }
-
-    const auto PORT = (*config)["arduino"]["port"].value<std::string>();
+std::expected<std::string, Error> arduino_port(const toml::table& config) {
+    const auto PORT = config["arduino"]["port"].value<std::string>();
 
     if (!PORT) {
         return std::unexpected("Arduino serial port is not configured");
@@ -116,14 +94,8 @@ std::expected<std::string, Error> arduino_port() {
     return *PORT;
 }
 
-std::expected<int, Error> arduino_baud_rate() {
-    auto config = load_config();
-
-    if (!config) {
-        return std::unexpected(config.error());
-    }
-
-    const auto BAUD_RATE = (*config)["arduino"]["baud_rate"].value<int64_t>();
+std::expected<int, Error> arduino_baud_rate(const toml::table& config) {
+    const auto BAUD_RATE = config["arduino"]["baud_rate"].value<int64_t>();
 
     if (!BAUD_RATE) {
         return std::unexpected("Arduino baud rate is not configured");

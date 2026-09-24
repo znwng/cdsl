@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "core/color.hpp"
+#include "core/config.hpp"
 #include "core/diagnostics.hpp"
 #include "core/parser.hpp"
 #include "instructions/instruction.hpp"
@@ -32,7 +33,7 @@ INSTRUCTION_SET get_opcode(const std::string& action) {
     return itr->second;
 }
 
-void process_instruction(const Instruction& instruction) {
+void process_instruction(const toml::table& config, const Instruction& instruction) {
     if (instruction.empty()) {
         return;
     }
@@ -47,7 +48,7 @@ void process_instruction(const Instruction& instruction) {
             break;
 
         case INSTRUCTION_SET::MOVE:
-            process_move(instruction);
+            process_move(config, instruction);
             break;
 
         case INSTRUCTION_SET::WAIT:
@@ -61,11 +62,21 @@ void process_instruction(const Instruction& instruction) {
 }
 
 void run_interactive_mode() {
+    // Load configuration once.
+    auto config = config::load_config();
+
+    if (!config) {
+        std::cerr << config.error() << '\n';
+        return;
+    }
+
     const char* home = std::getenv("HOME");
+
     if (home == nullptr) {
         std::cerr << "Unable to determine home directory\n";
         return;
     }
+
     const std::filesystem::path HISTORY_FILE = std::filesystem::path(home) / ".cdsl_history";
 
     std::cout << "Starting interactive mode\n"
@@ -135,7 +146,7 @@ void run_interactive_mode() {
         Instruction instruction = tokenize(command);
 
         if (!instruction.empty()) {
-            process_instruction(instruction);
+            process_instruction(*config, instruction);
         }
     }
 

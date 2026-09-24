@@ -90,7 +90,7 @@ uint16_t crc16(std::span<const uint8_t> data) {
 
 namespace arduino {
 
-std::expected<void, Error> send_command(const std::string& component_label, float value) {
+std::expected<void, Error> send_command(const toml::table& config, const std::string& component_label, float value) {
     // Give every packet a unique ID.
     //
     // First call  -> 0
@@ -100,13 +100,13 @@ std::expected<void, Error> send_command(const std::string& component_label, floa
     static uint16_t packet_id = 0;
 
     // Configuration
-    const auto COMPONENT_ID = config::component_id(component_label);
+    const auto COMPONENT_ID = config::component_id(config, component_label);
 
     if (!COMPONENT_ID) {
         return std::unexpected(COMPONENT_ID.error());
     }
 
-    const auto CONFIG_BAUD_RATE = config::arduino_baud_rate();
+    const auto CONFIG_BAUD_RATE = config::arduino_baud_rate(config);
 
     if (!CONFIG_BAUD_RATE) {
         return std::unexpected(CONFIG_BAUD_RATE.error());
@@ -118,13 +118,13 @@ std::expected<void, Error> send_command(const std::string& component_label, floa
         return std::unexpected(BAUD_RATE.error());
     }
 
-    const auto CONFIG_PORT = config::arduino_port();
+    const auto CONFIG_PORT = config::arduino_port(config);
 
     if (!CONFIG_PORT) {
         return std::unexpected(CONFIG_PORT.error());
     }
 
-    // Open serial port
+    // Open serial port.
     const int SERIAL = open(CONFIG_PORT->c_str(), O_WRONLY | O_NOCTTY);
 
     if (SERIAL == -1) {
@@ -180,7 +180,7 @@ std::expected<void, Error> send_command(const std::string& component_label, floa
         return std::unexpected("Failed to configure serial port");
     }
 
-    // Build packet
+    // Build packet.
     constexpr size_t PACKET_SIZE =
         sizeof(START_BYTE) + sizeof(packet_id) + sizeof(*COMPONENT_ID) + sizeof(float) + sizeof(uint16_t);
 
@@ -245,7 +245,7 @@ std::expected<void, Error> send_command(const std::string& component_label, floa
 
     packet.push_back(static_cast<uint8_t>(CRC >> BITS_PER_BYTE));
 
-    // Send packet
+    // Send packet.
     const auto BYTES_WRITTEN = write(SERIAL, packet.data(), packet.size());
 
     if (BYTES_WRITTEN < 0) {

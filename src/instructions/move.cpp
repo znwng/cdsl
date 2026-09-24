@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <toml++/toml.hpp>
 
 #include "core/config.hpp"
 #include "core/diagnostics.hpp"
@@ -9,7 +10,37 @@
 #include "hardware/arduino.hpp"
 #include "instructions/instruction.hpp"
 
-void process_move(const Instruction& instruction) {
+namespace {
+
+bool execute_move(const toml::table& config, const Instruction& instruction, const std::string& component_label,
+                  const std::string& value_text, float value) {
+    auto within_limits = config::value_within_limits(config, component_label, value);
+
+    if (!within_limits) {
+        diagnostics::error(within_limits.error(), instruction);
+        return false;
+    }
+
+    if (!*within_limits) {
+        diagnostics::error("Value out of range for " + component_label + ": " + std::to_string(value), instruction);
+        return false;
+    }
+
+    auto sent = arduino::send_command(config, component_label, value);
+
+    if (!sent) {
+        diagnostics::error(sent.error(), instruction);
+        return false;
+    }
+
+    std::cout << "Moved " << component_label << " by " << value_text << "\n\n";
+
+    return true;
+}
+
+}  // namespace
+
+void process_move(const toml::table& config, const Instruction& instruction) {
     if (instruction.size() != 3) {
         diagnostics::error(
             "Invalid number of arguments. "
@@ -20,8 +51,7 @@ void process_move(const Instruction& instruction) {
 
     const std::string& component_label = instruction[1];
 
-    // Check component
-    auto component_exists = config::component_exists(component_label);
+    auto component_exists = config::component_exists(config, component_label);
 
     if (!component_exists) {
         diagnostics::error(component_exists.error(), instruction);
@@ -51,27 +81,7 @@ void process_move(const Instruction& instruction) {
             return;
         }
 
-        auto within_limits = config::value_within_limits(component_label, *result);
-
-        if (!within_limits) {
-            diagnostics::error(within_limits.error(), instruction);
-            return;
-        }
-
-        if (!*within_limits) {
-            diagnostics::error("Value out of range for " + component_label + ": " + std::to_string(*result),
-                               instruction);
-            return;
-        }
-
-        auto sent = arduino::send_command(component_label, *result);
-
-        if (!sent) {
-            diagnostics::error(sent.error(), instruction);
-            return;
-        }
-
-        std::cout << "Moved " << component_label << " by " << value << "\n\n";
+        execute_move(config, instruction, component_label, value, *result);
 
         return;
     }
@@ -87,27 +97,7 @@ void process_move(const Instruction& instruction) {
 
         const float RESULT = get_variable(VARIABLE_NAME);
 
-        auto within_limits = config::value_within_limits(component_label, RESULT);
-
-        if (!within_limits) {
-            diagnostics::error(within_limits.error(), instruction);
-            return;
-        }
-
-        if (!*within_limits) {
-            diagnostics::error("Value out of range for " + component_label + ": " + std::to_string(RESULT),
-                               instruction);
-            return;
-        }
-
-        auto sent = arduino::send_command(component_label, RESULT);
-
-        if (!sent) {
-            diagnostics::error(sent.error(), instruction);
-            return;
-        }
-
-        std::cout << "Moved " << component_label << " by " << value << "\n\n";
+        execute_move(config, instruction, component_label, value, RESULT);
 
         return;
     }
@@ -120,24 +110,5 @@ void process_move(const Instruction& instruction) {
         return;
     }
 
-    auto within_limits = config::value_within_limits(component_label, *result);
-
-    if (!within_limits) {
-        diagnostics::error(within_limits.error(), instruction);
-        return;
-    }
-
-    if (!*within_limits) {
-        diagnostics::error("Value out of range for " + component_label + ": " + value, instruction);
-        return;
-    }
-
-    auto sent = arduino::send_command(component_label, *result);
-
-    if (!sent) {
-        diagnostics::error(sent.error(), instruction);
-        return;
-    }
-
-    std::cout << "Moved " << component_label << " by " << value << "\n\n";
+    execute_move(config, instruction, component_label, value, *result);
 }
