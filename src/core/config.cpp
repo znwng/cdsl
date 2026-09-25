@@ -3,8 +3,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
+#include <limits>
 #include <string>
 #include <toml++/toml.hpp>
+#include <utility>
 
 namespace config {
 
@@ -53,8 +55,10 @@ std::expected<uint8_t, Error> component_id(const toml::table& config, const std:
         return std::unexpected("Component ID is not configured: " + component_name);
     }
 
-    if (*COMPONENT_ID < 1 || *COMPONENT_ID > 255) {
-        return std::unexpected("Component ID must be between 1 and 255");
+    // Component id should be in between 0 and 255 both included
+    if (std::cmp_less(*COMPONENT_ID, std::numeric_limits<uint8_t>::min()) ||
+        std::cmp_greater(*COMPONENT_ID, std::numeric_limits<uint8_t>::max())) {
+        return std::unexpected("Component ID must be between 0 and 255");
     }
 
     return static_cast<uint8_t>(*COMPONENT_ID);
