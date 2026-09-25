@@ -22,6 +22,94 @@ std::expected<float, std::string> parse_factor(const std::string& expression, si
 
 std::expected<float, std::string> parse_primary(const std::string& expression, size_t& pos);
 
+std::expected<float, std::string> parse_parenthesized(const std::string& expression, size_t& pos) {
+    ++pos;  // Skip '('
+
+    auto value = parse_expression(expression, pos);
+
+    if (!value) {
+        return std::unexpected(value.error());
+    }
+
+    skip_whitespace(expression, pos);
+
+    if (pos >= expression.size() || expression[pos] != ')') {
+        return std::unexpected("Expected ')'");
+    }
+
+    ++pos;  // Skip ')'
+
+    return *value;
+}
+
+std::expected<float, std::string> parse_variable(const std::string& expression, size_t& pos) {
+    ++pos;  // Skip '$'
+
+    const size_t START = pos;
+
+    if (pos >= expression.size() ||
+        (std::isalpha(static_cast<unsigned char>(expression[pos])) == 0 && expression[pos] != '_')) {
+        return std::unexpected("Expected variable name after '$'");
+    }
+
+    ++pos;
+
+    while (pos < expression.size() &&
+           (std::isalnum(static_cast<unsigned char>(expression[pos])) != 0 || expression[pos] == '_')) {
+        ++pos;
+    }
+
+    const std::string NAME = expression.substr(START, pos - START);
+
+    if (!has_variable(NAME)) {
+        return std::unexpected("Undefined variable: $" + NAME);
+    }
+
+    return get_variable(NAME);
+}
+
+std::expected<float, std::string> parse_number(const std::string& expression, size_t& pos) {
+    const size_t START = pos;
+
+    bool has_digit = false;
+    bool has_dot = false;
+
+    while (pos < expression.size()) {
+        const char CHARACTER = expression[pos];
+
+        if (std::isdigit(static_cast<unsigned char>(CHARACTER)) != 0) {
+            has_digit = true;
+            ++pos;
+            continue;
+        }
+
+        if (CHARACTER == '.' && !has_dot) {
+            has_dot = true;
+            ++pos;
+            continue;
+        }
+
+        break;
+    }
+
+    if (!has_digit) {
+        return std::unexpected("Invalid number");
+    }
+
+    const std::string NUMBER = expression.substr(START, pos - START);
+
+    float value{};
+
+    const auto [PTR, ERROR] = std::from_chars(NUMBER.data(), NUMBER.data() + NUMBER.size(), value);
+
+    if (ERROR != std::errc{} || PTR != NUMBER.data() + NUMBER.size()) {
+        return std::unexpected("Invalid number: " + NUMBER);
+    }
+
+    return value;
+}
+
+// ============================================================
 // Primary
 //
 // Handles:
@@ -29,6 +117,7 @@ std::expected<float, std::string> parse_primary(const std::string& expression, s
 //     numbers
 //     variables
 //     (expressions)
+// ============================================================
 
 std::expected<float, std::string> parse_primary(const std::string& expression, size_t& pos) {
     skip_whitespace(expression, pos);
@@ -37,94 +126,19 @@ std::expected<float, std::string> parse_primary(const std::string& expression, s
         return std::unexpected("Unexpected end of expression");
     }
 
-    // Parenthesized expression
-    if (expression[pos] == '(') {
-        ++pos;
+    switch (expression[pos]) {
+        case '(':
+            return parse_parenthesized(expression, pos);
 
-        auto value = parse_expression(expression, pos);
+        case '$':
+            return parse_variable(expression, pos);
 
-        if (!value) {
-            return std::unexpected(value.error());
-        }
-
-        skip_whitespace(expression, pos);
-
-        if (pos >= expression.size() || expression[pos] != ')') {
-            return std::unexpected("Expected ')'");
-        }
-
-        ++pos;
-
-        return *value;
-    }
-
-    // Variable: $variable_name
-    if (expression[pos] == '$') {
-        ++pos;
-
-        const size_t START = pos;
-
-        if (pos >= expression.size() ||
-            (std::isalpha(static_cast<unsigned char>(expression[pos])) == 0 && expression[pos] != '_')) {
-            return std::unexpected("Expected variable name after '$'");
-        }
-
-        ++pos;
-
-        while (pos < expression.size() &&
-               (std::isalnum(static_cast<unsigned char>(expression[pos])) != 0 || expression[pos] == '_')) {
-            ++pos;
-        }
-
-        const std::string NAME = expression.substr(START, pos - START);
-
-        if (!has_variable(NAME)) {
-            return std::unexpected("Undefined variable: $" + NAME);
-        }
-
-        return get_variable(NAME);
-    }
-
-    // Number
-    if (std::isdigit(static_cast<unsigned char>(expression[pos])) != 0 || expression[pos] == '.') {
-        const size_t START = pos;
-
-        bool has_digit = false;
-        bool has_dot = false;
-
-        while (pos < expression.size()) {
-            const char CHARACTER = expression[pos];
-
-            if (std::isdigit(static_cast<unsigned char>(CHARACTER)) != 0) {
-                has_digit = true;
-                ++pos;
-                continue;
-            }
-
-            if (CHARACTER == '.' && !has_dot) {
-                has_dot = true;
-                ++pos;
-                continue;
-            }
-
+        default:
             break;
-        }
+    }
 
-        if (!has_digit) {
-            return std::unexpected("Invalid number");
-        }
-
-        const std::string NUMBER = expression.substr(START, pos - START);
-
-        float value{};
-
-        const auto [PTR, ERROR] = std::from_chars(NUMBER.data(), NUMBER.data() + NUMBER.size(), value);
-
-        if (ERROR != std::errc{} || PTR != NUMBER.data() + NUMBER.size()) {
-            return std::unexpected("Invalid number: " + NUMBER);
-        }
-
-        return value;
+    if (std::isdigit(static_cast<unsigned char>(expression[pos])) != 0 || expression[pos] == '.') {
+        return parse_number(expression, pos);
     }
 
     return std::unexpected("Unexpected character: " + std::string(1, expression[pos]));

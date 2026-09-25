@@ -44,14 +44,14 @@ void process_set(const Instruction& instruction) {
 
     // Variable
     else if (value.starts_with('$')) {
-        const std::string variable_name = value.substr(1);
+        const std::string VARIABLE_NAME = value.substr(1);
 
-        if (!has_variable(variable_name)) {
-            diagnostics::error("Unknown variable: " + variable_name, instruction);
+        if (!has_variable(VARIABLE_NAME)) {
+            diagnostics::error("Unknown variable: " + VARIABLE_NAME, instruction);
             return;
         }
 
-        variable_value = get_variable(variable_name);
+        variable_value = get_variable(VARIABLE_NAME);
     }
 
     // Literal float
