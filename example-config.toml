@@ -1,23 +1,33 @@
-[component.base]
+[arduino]
+port = "/dev/ttyUSBX"
+baud_rate = 115200
+
+[component.component_1]
+id = 0
 min = 0
 max = 180
 
-[component.shoulder]
+[component.component_2]
+id = 1
 min = 0
 max = 180
 
-[component.elbow]
+[component.component_3]
+id = 2
 min = 0
 max = 180
 
-[component.wrist]
+[component.component_4]
+id = 3
 min = 0
 max = 180
 
-[component.hand]
+[component.component_5]
+id = 4
 min = 0
 max = 180
 
-[component.claw]
+[component.component_6]
+id = 5
 min = 0
 max = 90
